@@ -32,9 +32,11 @@ private:
 
     // Process AI response with tool calling
     void processResponse(const std::string& response, int iteration = 1);
+    void processResponseWithMessages(json& messages, const std::string& response, int iteration = 1);
 
     // Build context for AI
     std::string buildContext(const std::string& user_message);
+    json buildMessages(const std::string& user_message);
 
     // Get system prompt
     std::string getSystemPrompt();

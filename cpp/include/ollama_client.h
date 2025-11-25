@@ -31,10 +31,18 @@ public:
     // List available models
     std::vector<std::string> listModels();
 
-    // Generate completion
+    // Generate completion (legacy)
     OllamaResponse generate(
         const std::string& model,
         const std::string& prompt,
+        double temperature = 0.7,
+        int max_tokens = 4096
+    );
+
+    // Chat completion with messages
+    OllamaResponse chat(
+        const std::string& model,
+        const json& messages,
         double temperature = 0.7,
         int max_tokens = 4096
     );

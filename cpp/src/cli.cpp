@@ -149,75 +149,87 @@ void CLI::printModels() {
 }
 
 std::string CLI::getSystemPrompt() {
-    return R"(You are an AI coding assistant with access to tools that allow you to interact with the user's system. You can execute commands, read files, write files, search for files and code, and more.
+    return R"(You are an AI coding assistant with tool access. When asked to perform actions, use the appropriate tools.
 
-# Available Tools
+## Available Tools
 
-## Bash
-Execute shell commands on the user's system.
-Parameters:
-- command (required): The shell command to execute
-- description (optional): Description of what the command does
+**Bash** - Execute shell commands
+  - command: The shell command to run
+  - description: What the command does
 
-## Read
-Read the contents of a file.
-Parameters:
-- file_path (required): Path to the file to read
+**Read** - Read file contents
+  - file_path: Path to file
 
-## Write
-Write or create a file with specified content.
-Parameters:
-- file_path (required): Path to the file to write
-- content (required): Content to write to the file
+**Write** - Write/create files
+  - file_path: Path to file
+  - content: File content
 
-## Edit
-Edit an existing file by replacing old_string with new_string.
-Parameters:
-- file_path (required): Path to the file to edit
-- old_string (required): The exact text to find and replace
-- new_string (required): The text to replace it with
+**Edit** - Edit existing files
+  - file_path: Path to file
+  - old_string: Text to replace
+  - new_string: Replacement text
 
-## Glob
-Find files matching a pattern.
-Parameters:
-- pattern (required): File pattern to search for (e.g., "*.py", "*.js")
-- path (optional): Directory to search in (default: current directory)
+**Glob** - Find files by pattern
+  - pattern: File pattern (e.g., "*.py")
+  - path: Directory to search (optional)
 
-## Grep
-Search for text within files.
-Parameters:
-- pattern (required): Text pattern to search for
-- path (optional): Directory or file to search in (default: current directory)
-- output_mode (optional): "content" shows matching lines, "files_with_matches" shows only file paths
+**Grep** - Search in files
+  - pattern: Text to find
+  - path: Where to search (optional)
+  - output_mode: "content" or "files_with_matches" (optional)
 
-# How to Use Tools
-
-To use a tool, output your response in this format:
+## Tool Usage Format
 
 <tool_calls>
 <tool_call>
 <tool_name>Bash</tool_name>
 <parameters>
 <command>ls -la</command>
-<description>List all files in current directory</description>
+<description>List files</description>
 </parameters>
 </tool_call>
 </tool_calls>
 
-You can call multiple tools by including multiple <tool_call> blocks within <tool_calls>.
+Multiple tools can be called by adding more <tool_call> blocks within <tool_calls>.
 
-# Important Guidelines
-
-1. Think before acting: Explain your reasoning before calling tools
-2. Be precise: Use exact file paths and commands
-3. Show your work: After tools execute, explain what you found
-4. Safety first: Be careful with destructive commands
-5. Iterative approach: Break complex tasks into smaller steps
-
-Remember: Only output <tool_calls> blocks when you actually need to use tools. For simple questions or explanations, just respond normally without tool calls.
+When the user asks you to do something, think about what tools you need, explain your plan briefly, then execute the tools. After tools run, you'll receive the results and can provide your final answer.
 )";
 }
 
+json CLI::buildMessages(const std::string& user_message) {
+    json messages = json::array();
+
+    // System message with tool definitions
+    messages.push_back({
+        {"role", "system"},
+        {"content", getSystemPrompt()}
+    });
+
+    // User message with environment context
+    std::ostringstream userContent;
+    userContent << user_message << "\n\nEnvironment:\n";
+
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd))) {
+        userContent << "- Working Directory: " << cwd << "\n";
+    }
+
+    char* user = getenv("USER");
+    if (user) {
+        userContent << "- User: " << user << "\n";
+    }
+
+    userContent << "- Date: " << utils::getCurrentTimestamp();
+
+    messages.push_back({
+        {"role", "user"},
+        {"content", userContent.str()}
+    });
+
+    return messages;
+}
+
+// Legacy method for backward compatibility
 std::string CLI::buildContext(const std::string& user_message) {
     std::ostringstream context;
 
@@ -306,22 +318,98 @@ void CLI::processResponse(const std::string& response, int iteration) {
     processResponse(nextResponse.response, iteration + 1);
 }
 
-void CLI::singlePromptMode(const std::string& prompt) {
-    auto start = std::chrono::steady_clock::now();
+void CLI::processResponseWithMessages(json& messages, const std::string& response, int iteration) {
+    if (iteration > MAX_TOOL_ITERATIONS) {
+        utils::terminal::printWarning("Maximum tool calling iterations reached");
+        return;
+    }
 
-    std::string context = buildContext(prompt);
+    // Extract and display response text
+    std::string responseText = parser_->extractResponseText(response);
+    if (!responseText.empty()) {
+        std::cout << utils::terminal::GREEN << responseText << utils::terminal::RESET << "\n\n";
+    }
+
+    // Parse tool calls
+    auto toolCalls = parser_->parseToolCalls(response);
+
+    if (toolCalls.empty()) {
+        return; // No tools to execute
+    }
+
+    // Execute tools
+    std::cout << utils::terminal::CYAN << utils::terminal::BOLD
+              << "🔧 Executing " << toolCalls.size() << " tool(s)..."
+              << utils::terminal::RESET << "\n\n";
+
+    auto results = executor_->executeAll(toolCalls);
+
+    // Build results summary for next AI iteration
+    std::ostringstream resultsSummary;
+    resultsSummary << "Tool execution results:\n\n";
+
+    for (size_t i = 0; i < toolCalls.size(); i++) {
+        resultsSummary << "Tool: " << toolCalls[i].name << "\n";
+        resultsSummary << "Exit Code: " << results[i].exit_code << "\n";
+        resultsSummary << "Success: " << (results[i].success ? "true" : "false") << "\n";
+        if (!results[i].error.empty()) {
+            resultsSummary << "Error: " << results[i].error << "\n";
+        }
+        if (!results[i].output.empty()) {
+            resultsSummary << "Output:\n" << results[i].output << "\n";
+        }
+        resultsSummary << "\n";
+    }
+
+    resultsSummary << "Based on these results, provide your analysis or next steps. Only use more tools if absolutely necessary.";
+
+    // Add assistant response to messages
+    messages.push_back({
+        {"role", "assistant"},
+        {"content", response}
+    });
+
+    // Add tool results as user message
+    messages.push_back({
+        {"role", "user"},
+        {"content", resultsSummary.str()}
+    });
+
+    // Send results back to AI
+    std::cout << utils::terminal::CYAN << utils::terminal::BOLD
+              << "📊 Tool execution completed. Processing results..."
+              << utils::terminal::RESET << "\n\n";
 
     std::string model = model_override_.empty() ? config_->getModel() : model_override_;
     double temp = temperature_override_ < 0 ? config_->getTemperature() : temperature_override_;
 
-    auto response = client_->generate(model, context, temp, config_->getMaxTokens());
+    auto nextResponse = client_->chat(model, messages, temp, config_->getMaxTokens());
+
+    if (!nextResponse.isSuccess()) {
+        utils::terminal::printError("Failed to get AI response: " + nextResponse.error);
+        return;
+    }
+
+    // Recursively process next response
+    processResponseWithMessages(messages, nextResponse.response, iteration + 1);
+}
+
+void CLI::singlePromptMode(const std::string& prompt) {
+    auto start = std::chrono::steady_clock::now();
+
+    json messages = buildMessages(prompt);
+
+    std::string model = model_override_.empty() ? config_->getModel() : model_override_;
+    double temp = temperature_override_ < 0 ? config_->getTemperature() : temperature_override_;
+
+    auto response = client_->chat(model, messages, temp, config_->getMaxTokens());
 
     if (!response.isSuccess()) {
         utils::terminal::printError("Failed to get AI response: " + response.error);
         return;
     }
 
-    processResponse(response.response);
+    processResponseWithMessages(messages, response.response);
 
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
@@ -412,21 +500,21 @@ void CLI::interactiveMode() {
         std::cout << "\n";
         auto start = std::chrono::steady_clock::now();
 
-        std::string context = buildContext(input);
+        json messages = buildMessages(input);
 
         std::string model = model_override_.empty() ? config_->getModel() : model_override_;
         double temp = temperature_override_ < 0 ? config_->getTemperature() : temperature_override_;
 
         std::cout << utils::terminal::BLUE << utils::terminal::BOLD << "🤔 Thinking..." << utils::terminal::RESET << "\n\n";
 
-        auto response = client_->generate(model, context, temp, config_->getMaxTokens());
+        auto response = client_->chat(model, messages, temp, config_->getMaxTokens());
 
         if (!response.isSuccess()) {
             utils::terminal::printError("Failed to get AI response: " + response.error);
             continue;
         }
 
-        processResponse(response.response);
+        processResponseWithMessages(messages, response.response);
 
         auto end = std::chrono::steady_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);

@@ -163,4 +163,70 @@ OllamaResponse OllamaClient::generate(
     return response;
 }
 
+OllamaResponse OllamaClient::chat(
+    const std::string& model,
+    const json& messages,
+    double temperature,
+    int max_tokens)
+{
+    OllamaResponse response;
+
+    try {
+        // Build JSON payload
+        json payload = {
+            {"model", model},
+            {"messages", messages},
+            {"stream", false},
+            {"options", {
+                {"temperature", temperature},
+                {"num_predict", max_tokens}
+            }}
+        };
+
+        std::string jsonPayload = payload.dump();
+
+        // Send request to chat endpoint
+        std::string responseStr = httpPost("/api/chat", jsonPayload);
+
+        // Parse response
+        json j = json::parse(responseStr);
+
+        // Check for error
+        if (j.contains("error")) {
+            response.error = j["error"].get<std::string>();
+            response.done = true;
+            return response;
+        }
+
+        // Extract message content
+        if (j.contains("message") && j["message"].contains("content")) {
+            response.response = j["message"]["content"].get<std::string>();
+        }
+
+        if (j.contains("eval_count")) {
+            response.eval_count = j["eval_count"].get<int>();
+        } else {
+            response.eval_count = 0;
+        }
+
+        if (j.contains("total_duration")) {
+            response.total_duration = j["total_duration"].get<long long>();
+        } else {
+            response.total_duration = 0;
+        }
+
+        if (j.contains("done")) {
+            response.done = j["done"].get<bool>();
+        } else {
+            response.done = true;
+        }
+
+    } catch (const std::exception& e) {
+        response.error = std::string("Chat failed: ") + e.what();
+        response.done = true;
+    }
+
+    return response;
+}
+
 } // namespace ollamacode

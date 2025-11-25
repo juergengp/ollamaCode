@@ -15,6 +15,27 @@ CONFIG_FILE="${CONFIG_DIR}/config"
 HISTORY_FILE="${CONFIG_DIR}/history"
 SESSION_DIR="${CONFIG_DIR}/sessions"
 
+# Get script directory for loading libraries
+# Try development location first, then installed location
+if [[ -d "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." 2>/dev/null && pwd)/lib" ]]; then
+    # Development mode: libs are in ../lib relative to bin/
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../lib" && pwd)"
+elif [[ -d "/usr/local/lib/ollamacode" ]]; then
+    # Installed mode: libs are in /usr/local/lib/ollamacode
+    SCRIPT_DIR="/usr/local/lib/ollamacode"
+else
+    echo "Error: Could not find ollamacode library files" >&2
+    echo "Searched:" >&2
+    echo "  - $(dirname "${BASH_SOURCE[0]}")/../lib" >&2
+    echo "  - /usr/local/lib/ollamacode" >&2
+    exit 1
+fi
+
+# Source tool libraries
+source "${SCRIPT_DIR}/system_prompt.sh"
+source "${SCRIPT_DIR}/tool_parser.sh"
+source "${SCRIPT_DIR}/tool_executor.sh"
+
 # Default settings
 DEFAULT_MODEL="coreEchoFlux"
 DEFAULT_OLLAMA_HOST="http://localhost:11434"
@@ -147,60 +168,137 @@ show_config() {
     echo -e "  History:      ${HISTORY_FILE}"
 }
 
-# Send prompt to Ollama
+# Send prompt to Ollama with tool execution support
 send_prompt() {
-    local prompt="$1"
+    local user_prompt="$1"
     local show_stats="${2:-false}"
 
     echo -e "${BLUE}${BOLD}Thinking...${NC}"
     echo ""
 
     local start_time=$(date +%s)
+    local total_tokens=0
 
-    # Build JSON payload
-    local json_payload=$(cat <<EOF
-{
-  "model": "${MODEL}",
-  "prompt": "${prompt}",
-  "stream": false,
-  "options": {
-    "temperature": ${TEMPERATURE},
-    "num_predict": ${MAX_TOKENS}
-  }
-}
-EOF
-)
+    # Get system prompt with tool definitions
+    local system_prompt=$(get_system_prompt)
 
-    # Send request to Ollama
-    local response=$(curl -s -X POST "${OLLAMA_HOST}/api/generate" \
-        -H "Content-Type: application/json" \
-        -d "${json_payload}")
+    # Initialize messages array with system and user message
+    local messages_json=$(jq -n \
+        --arg sys "$system_prompt" \
+        --arg user "$user_prompt" \
+        '[{role: "system", content: $sys}, {role: "user", content: $user}]')
+
+    # Tool execution loop
+    local max_iterations=10
+    local iteration=0
+
+    while [[ $iteration -lt $max_iterations ]]; do
+        iteration=$((iteration + 1))
+
+        # Build JSON payload using chat API
+        local temp_file=$(mktemp)
+        jq -n \
+            --arg model "${MODEL}" \
+            --argjson messages "$messages_json" \
+            --argjson temp "${TEMPERATURE}" \
+            --argjson max_tokens "${MAX_TOKENS}" \
+            '{
+                model: $model,
+                messages: $messages,
+                stream: false,
+                options: {
+                    temperature: $temp,
+                    num_predict: $max_tokens
+                }
+            }' > "$temp_file"
+
+        # Send request to Ollama using chat API
+        local response=$(curl -s -X POST "${OLLAMA_HOST}/api/chat" \
+            -H "Content-Type: application/json" \
+            --data-binary "@$temp_file")
+
+        rm -f "$temp_file"
+
+        # Extract response
+        local ai_response=$(echo "${response}" | jq -r '.message.content')
+        local eval_count=$(echo "${response}" | jq -r '.eval_count // 0')
+        total_tokens=$((total_tokens + eval_count))
+
+        # Check for tool calls
+        local tool_calls_file=$(parse_tool_calls "$ai_response")
+        local tool_count=$(count_tool_calls "$tool_calls_file")
+
+        if [[ "$tool_count" -eq 0 ]]; then
+            # No tool calls - print final response and exit loop
+            local response_text=$(get_response_text "$ai_response")
+            echo -e "${GREEN}${response_text}${NC}"
+            echo ""
+            [[ -f "$tool_calls_file" ]] && rm -f "$tool_calls_file"
+            break
+        fi
+
+        # Print any text before tool calls
+        local response_text=$(get_response_text "$ai_response")
+        if [[ -n "$response_text" ]]; then
+            echo -e "${GREEN}${response_text}${NC}"
+            echo ""
+        fi
+
+        # Execute tool calls
+        local tool_results=""
+        for ((i=0; i<tool_count; i++)); do
+            local tool_call=$(extract_tool_call "$tool_calls_file" "$i")
+            local tool_name=$(parse_tool_name "$tool_call")
+
+            echo -e "${CYAN}[Executing tool: ${tool_name}]${NC}"
+            echo ""
+
+            # Execute tool and capture output
+            local tool_output=$(execute_tool "$tool_name" "$tool_call" 2>&1)
+            local tool_exit_code=$?
+
+            # Build tool result
+            tool_results+="
+
+=== Tool Result ${i} (${tool_name}) ===
+Exit Code: ${tool_exit_code}
+${tool_output}
+========================
+
+"
+        done
+
+        # Clean up temp file
+        [[ -f "$tool_calls_file" ]] && rm -f "$tool_calls_file"
+
+        # Add assistant response and tool results to messages
+        local followup_message="Tool execution results:${tool_results}
+
+Please analyze these results and provide your final answer, or execute more tools if needed."
+
+        messages_json=$(echo "$messages_json" | jq \
+            --arg assistant_msg "$ai_response" \
+            --arg tool_msg "$followup_message" \
+            '. + [{role: "assistant", content: $assistant_msg}, {role: "user", content: $tool_msg}]')
+
+    done
 
     local end_time=$(date +%s)
     local duration=$((end_time - start_time))
 
-    # Extract response
-    local ai_response=$(echo "${response}" | jq -r '.response')
-    local total_duration=$(echo "${response}" | jq -r '.total_duration // 0')
-    local eval_count=$(echo "${response}" | jq -r '.eval_count // 0')
-
-    # Print response
-    echo -e "${GREEN}${ai_response}${NC}"
-    echo ""
-
     # Show stats if requested
     if [[ "${show_stats}" == "true" ]]; then
         local tokens_per_sec=0
-        if [[ ${duration} -gt 0 ]] && [[ ${eval_count} -gt 0 ]]; then
-            tokens_per_sec=$(awk "BEGIN {printf \"%.2f\", ${eval_count}/${duration}}")
+        if [[ ${duration} -gt 0 ]] && [[ ${total_tokens} -gt 0 ]]; then
+            tokens_per_sec=$(awk "BEGIN {printf \"%.2f\", ${total_tokens}/${duration}}")
         fi
 
         echo -e "${MAGENTA}───────────────────────────────────────${NC}"
-        echo -e "${MAGENTA}Stats: ${duration}s | ${eval_count} tokens | ${tokens_per_sec} tok/s${NC}"
+        echo -e "${MAGENTA}Stats: ${duration}s | ${total_tokens} tokens | ${tokens_per_sec} tok/s${NC}"
     fi
 
     # Save to history
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ${prompt}" >> "${HISTORY_FILE}"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ${user_prompt}" >> "${HISTORY_FILE}"
 }
 
 # Interactive mode
