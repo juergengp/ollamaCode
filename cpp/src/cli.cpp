@@ -101,6 +101,7 @@ OPTIONS:
 INTERACTIVE COMMANDS:
     help                    Show available commands
     models                  List available models
+    model                   Interactive model selector
     use MODEL               Switch to different model
     temp NUM                Set temperature
     safe [on|off]           Toggle safe mode
@@ -146,6 +147,61 @@ void CLI::printModels() {
         }
     }
     std::cout << "\n";
+}
+
+void CLI::selectModel() {
+    auto models = client_->listModels();
+    if (models.empty()) {
+        utils::terminal::printWarning("No models found. Make sure Ollama is running.");
+        return;
+    }
+
+    std::string currentModel = model_override_.empty() ? config_->getModel() : model_override_;
+
+    std::cout << utils::terminal::CYAN << utils::terminal::BOLD << "Select a model:" << utils::terminal::RESET << "\n\n";
+
+    for (size_t i = 0; i < models.size(); i++) {
+        bool isCurrent = (models[i] == currentModel);
+        if (isCurrent) {
+            std::cout << utils::terminal::GREEN << "  [" << (i + 1) << "] " << models[i] << " (current)" << utils::terminal::RESET << "\n";
+        } else {
+            std::cout << "  [" << (i + 1) << "] " << models[i] << "\n";
+        }
+    }
+
+    std::cout << "\n" << utils::terminal::BOLD << "Enter number (or 'q' to cancel): " << utils::terminal::RESET;
+
+    std::string input;
+#ifdef HAVE_READLINE
+    char* line = readline("");
+    if (!line) return;
+    input = line;
+    free(line);
+#else
+    if (!std::getline(std::cin, input)) return;
+#endif
+
+    input = utils::trim(input);
+    if (input.empty() || input == "q" || input == "Q") {
+        std::cout << "Cancelled.\n\n";
+        return;
+    }
+
+    try {
+        int choice = std::stoi(input);
+        if (choice < 1 || choice > static_cast<int>(models.size())) {
+            utils::terminal::printError("Invalid selection. Please enter a number between 1 and " + std::to_string(models.size()));
+            return;
+        }
+
+        std::string selectedModel = models[choice - 1];
+        config_->setModel(selectedModel);
+        model_override_.clear();  // Clear override so config model is used
+        utils::terminal::printSuccess("Switched to model: " + selectedModel);
+        std::cout << "\n";
+    } catch (const std::exception&) {
+        utils::terminal::printError("Invalid input. Please enter a number.");
+    }
 }
 
 std::string CLI::getSystemPrompt() {
@@ -425,6 +481,8 @@ void CLI::handleCommand(const std::string& input) {
         printHelp();
     } else if (cmd == "models") {
         printModels();
+    } else if (cmd == "model") {
+        selectModel();
     } else if (cmd == "config") {
         printConfig();
     } else if (cmd == "clear") {
@@ -489,7 +547,7 @@ void CLI::interactiveMode() {
         }
 
         // Check if it's a command
-        if (input == "help" || input == "models" || input == "config" || input == "clear" ||
+        if (input == "help" || input == "models" || input == "model" || input == "config" || input == "clear" ||
             utils::startsWith(input, "use ") || utils::startsWith(input, "temp ") ||
             utils::startsWith(input, "safe ") || utils::startsWith(input, "auto ")) {
             handleCommand(input);

@@ -46,6 +46,7 @@ private:
     void printHelp();
     void printConfig();
     void printModels();
+    void selectModel();
 
     // Command handlers
     void handleCommand(const std::string& input);
