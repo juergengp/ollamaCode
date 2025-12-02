@@ -123,14 +123,29 @@ ToolResult ToolExecutor::executeBash(const ToolCall& tool_call) {
 ToolResult ToolExecutor::executeRead(const ToolCall& tool_call) {
     ToolResult result;
 
-    auto it = tool_call.parameters.find("file_path");
-    if (it == tool_call.parameters.end()) {
-        result.success = false;
-        result.error = "Missing 'file_path' parameter";
-        return result;
+    // Try multiple parameter names (fallback for different model outputs)
+    std::string file_path;
+    std::vector<std::string> path_aliases = {"file_path", "path", "filename", "file", "content"};
+
+    for (const auto& alias : path_aliases) {
+        auto it = tool_call.parameters.find(alias);
+        if (it != tool_call.parameters.end() && !it->second.empty()) {
+            file_path = it->second;
+            break;
+        }
     }
 
-    std::string file_path = it->second;
+    if (file_path.empty()) {
+        result.success = false;
+        result.error = "Missing 'file_path' parameter. Received parameters: ";
+        for (const auto& p : tool_call.parameters) {
+            result.error += "[" + p.first + "=" + p.second.substr(0, 50) + "] ";
+        }
+        if (tool_call.parameters.empty()) {
+            result.error += "(none)";
+        }
+        return result;
+    }
 
     utils::terminal::printInfo("[Tool: Read]");
     std::cout << utils::terminal::CYAN << "File: " << file_path << utils::terminal::RESET << "\n\n";
@@ -161,17 +176,36 @@ ToolResult ToolExecutor::executeRead(const ToolCall& tool_call) {
 ToolResult ToolExecutor::executeWrite(const ToolCall& tool_call) {
     ToolResult result;
 
-    auto path_it = tool_call.parameters.find("file_path");
-    auto content_it = tool_call.parameters.find("content");
-
-    if (path_it == tool_call.parameters.end() || content_it == tool_call.parameters.end()) {
-        result.success = false;
-        result.error = "Missing 'file_path' or 'content' parameter";
-        return result;
+    // Try multiple parameter names for file path
+    std::string file_path;
+    std::vector<std::string> path_aliases = {"file_path", "path", "filename", "file"};
+    for (const auto& alias : path_aliases) {
+        auto it = tool_call.parameters.find(alias);
+        if (it != tool_call.parameters.end() && !it->second.empty()) {
+            file_path = it->second;
+            break;
+        }
     }
 
-    std::string file_path = path_it->second;
-    std::string content = content_it->second;
+    // Try multiple parameter names for content
+    std::string content;
+    std::vector<std::string> content_aliases = {"content", "text", "data", "body"};
+    for (const auto& alias : content_aliases) {
+        auto it = tool_call.parameters.find(alias);
+        if (it != tool_call.parameters.end()) {
+            content = it->second;
+            break;
+        }
+    }
+
+    if (file_path.empty() || content.empty()) {
+        result.success = false;
+        result.error = "Missing 'file_path' or 'content' parameter. Received: ";
+        for (const auto& p : tool_call.parameters) {
+            result.error += "[" + p.first + "] ";
+        }
+        return result;
+    }
 
     utils::terminal::printInfo("[Tool: Write]");
     std::cout << utils::terminal::CYAN << "File: " << file_path << utils::terminal::RESET << "\n\n";
@@ -218,19 +252,47 @@ ToolResult ToolExecutor::executeWrite(const ToolCall& tool_call) {
 ToolResult ToolExecutor::executeEdit(const ToolCall& tool_call) {
     ToolResult result;
 
-    auto path_it = tool_call.parameters.find("file_path");
-    auto old_it = tool_call.parameters.find("old_string");
-    auto new_it = tool_call.parameters.find("new_string");
-
-    if (path_it == tool_call.parameters.end() || old_it == tool_call.parameters.end() || new_it == tool_call.parameters.end()) {
-        result.success = false;
-        result.error = "Missing required parameters";
-        return result;
+    // Try multiple parameter names for file path
+    std::string file_path;
+    std::vector<std::string> path_aliases = {"file_path", "path", "filename", "file"};
+    for (const auto& alias : path_aliases) {
+        auto it = tool_call.parameters.find(alias);
+        if (it != tool_call.parameters.end() && !it->second.empty()) {
+            file_path = it->second;
+            break;
+        }
     }
 
-    std::string file_path = path_it->second;
-    std::string old_string = old_it->second;
-    std::string new_string = new_it->second;
+    // Try multiple parameter names for old string
+    std::string old_string;
+    std::vector<std::string> old_aliases = {"old_string", "old", "search", "find", "original"};
+    for (const auto& alias : old_aliases) {
+        auto it = tool_call.parameters.find(alias);
+        if (it != tool_call.parameters.end()) {
+            old_string = it->second;
+            break;
+        }
+    }
+
+    // Try multiple parameter names for new string
+    std::string new_string;
+    std::vector<std::string> new_aliases = {"new_string", "new", "replace", "replacement"};
+    for (const auto& alias : new_aliases) {
+        auto it = tool_call.parameters.find(alias);
+        if (it != tool_call.parameters.end()) {
+            new_string = it->second;
+            break;
+        }
+    }
+
+    if (file_path.empty() || old_string.empty()) {
+        result.success = false;
+        result.error = "Missing required parameters (file_path, old_string). Received: ";
+        for (const auto& p : tool_call.parameters) {
+            result.error += "[" + p.first + "] ";
+        }
+        return result;
+    }
 
     utils::terminal::printInfo("[Tool: Edit]");
     std::cout << utils::terminal::CYAN << "File: " << file_path << utils::terminal::RESET << "\n\n";

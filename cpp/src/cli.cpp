@@ -82,7 +82,7 @@ void CLI::printBanner() {
 )" << utils::terminal::RESET;
 
     std::cout << utils::terminal::BLUE << "Interactive CLI for Ollama - Version 2.0.0 (C++)" << utils::terminal::RESET << "\n";
-    std::cout << utils::terminal::YELLOW << "Type 'help' for commands, 'exit' to quit" << utils::terminal::RESET << "\n\n";
+    std::cout << utils::terminal::YELLOW << "Type '/help' for commands, '/exit' to quit" << utils::terminal::RESET << "\n\n";
 }
 
 void CLI::printHelp() {
@@ -98,17 +98,17 @@ OPTIONS:
     -v, --version           Show version
     -h, --help              Show this help
 
-INTERACTIVE COMMANDS:
-    help                    Show available commands
-    models                  List available models
-    model                   Interactive model selector
-    use MODEL               Switch to different model
-    temp NUM                Set temperature
-    safe [on|off]           Toggle safe mode
-    auto [on|off]           Toggle auto-approve
-    clear                   Clear screen
-    config                  Show configuration
-    exit, quit              Exit ollamacode
+INTERACTIVE COMMANDS (use /command):
+    /help                   Show available commands
+    /models                 List available models
+    /model                  Interactive model selector
+    /use MODEL              Switch to different model
+    /temp NUM               Set temperature
+    /safe [on|off]          Toggle safe mode
+    /auto [on|off]          Toggle auto-approve
+    /clear                  Clear screen
+    /config                 Show configuration
+    /exit, /quit            Exit ollamacode
 
 EXAMPLES:
     ollamacode                              # Start interactive mode
@@ -236,17 +236,38 @@ std::string CLI::getSystemPrompt() {
 
 ## Tool Usage Format
 
-<tool_calls>
-<tool_call>
-<tool_name>Bash</tool_name>
-<parameters>
-<command>ls -la</command>
-<description>List files</description>
-</parameters>
-</tool_call>
-</tool_calls>
+Use this XML format to call tools:
 
-Multiple tools can be called by adding more <tool_call> blocks within <tool_calls>.
+<function_calls>
+<invoke name="TOOL_NAME">
+<parameter name="param1">value1</parameter>
+<parameter name="param2">value2</parameter>
+</invoke>
+</function_calls>
+
+## Examples
+
+Read a file:
+<function_calls>
+<invoke name="Read">
+<parameter name="file_path">/path/to/file.txt</parameter>
+</invoke>
+</function_calls>
+
+Run a command:
+<function_calls>
+<invoke name="Bash">
+<parameter name="command">ls -la</parameter>
+<parameter name="description">List all files</parameter>
+</invoke>
+</function_calls>
+
+Search for files:
+<function_calls>
+<invoke name="Glob">
+<parameter name="pattern">*.cpp</parameter>
+</invoke>
+</function_calls>
 
 When the user asks you to do something, think about what tools you need, explain your plan briefly, then execute the tools. After tools run, you'll receive the results and can provide your final answer.
 )";
@@ -326,8 +347,29 @@ void CLI::processResponse(const std::string& response, int iteration) {
     auto toolCalls = parser_->parseToolCalls(response);
 
     if (toolCalls.empty()) {
+        // Debug: show if tool call format was detected but parsing failed
+        if (response.find("<function_calls>") != std::string::npos ||
+            response.find("<tool_calls>") != std::string::npos) {
+            utils::terminal::printWarning("Tool call block detected but no valid tools parsed");
+            std::cout << utils::terminal::YELLOW << "Raw response snippet:\n"
+                      << response.substr(0, std::min(size_t(500), response.length()))
+                      << "..." << utils::terminal::RESET << "\n\n";
+        }
         return; // No tools to execute
     }
+
+    // Debug: show parsed tool calls
+    std::cout << utils::terminal::BLUE << "Parsed " << toolCalls.size() << " tool call(s):" << utils::terminal::RESET << "\n";
+    for (size_t i = 0; i < toolCalls.size(); i++) {
+        std::cout << utils::terminal::BLUE << "  [" << (i+1) << "] " << toolCalls[i].name << " - params: ";
+        for (const auto& p : toolCalls[i].parameters) {
+            std::cout << p.first << "=\"" << p.second.substr(0, 30);
+            if (p.second.length() > 30) std::cout << "...";
+            std::cout << "\" ";
+        }
+        std::cout << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
 
     // Execute tools
     std::cout << utils::terminal::CYAN << utils::terminal::BOLD
@@ -390,8 +432,29 @@ void CLI::processResponseWithMessages(json& messages, const std::string& respons
     auto toolCalls = parser_->parseToolCalls(response);
 
     if (toolCalls.empty()) {
+        // Debug: show if tool call format was detected but parsing failed
+        if (response.find("<function_calls>") != std::string::npos ||
+            response.find("<tool_calls>") != std::string::npos) {
+            utils::terminal::printWarning("Tool call block detected but no valid tools parsed");
+            std::cout << utils::terminal::YELLOW << "Raw response snippet:\n"
+                      << response.substr(0, std::min(size_t(500), response.length()))
+                      << "..." << utils::terminal::RESET << "\n\n";
+        }
         return; // No tools to execute
     }
+
+    // Debug: show parsed tool calls
+    std::cout << utils::terminal::BLUE << "Parsed " << toolCalls.size() << " tool call(s):" << utils::terminal::RESET << "\n";
+    for (size_t i = 0; i < toolCalls.size(); i++) {
+        std::cout << utils::terminal::BLUE << "  [" << (i+1) << "] " << toolCalls[i].name << " - params: ";
+        for (const auto& p : toolCalls[i].parameters) {
+            std::cout << p.first << "=\"" << p.second.substr(0, 30);
+            if (p.second.length() > 30) std::cout << "...";
+            std::cout << "\" ";
+        }
+        std::cout << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
 
     // Execute tools
     std::cout << utils::terminal::CYAN << utils::terminal::BOLD
@@ -477,6 +540,11 @@ void CLI::singlePromptMode(const std::string& prompt) {
 void CLI::handleCommand(const std::string& input) {
     std::string cmd = utils::trim(input);
 
+    // Strip leading slash
+    if (!cmd.empty() && cmd[0] == '/') {
+        cmd = cmd.substr(1);
+    }
+
     if (cmd == "help") {
         printHelp();
     } else if (cmd == "models") {
@@ -509,7 +577,7 @@ void CLI::handleCommand(const std::string& input) {
         config_->setAutoApprove(false);
         utils::terminal::printSuccess("Auto-approve disabled");
     } else {
-        utils::terminal::printError("Unknown command. Type 'help' for available commands.");
+        utils::terminal::printError("Unknown command. Type '/help' for available commands.");
     }
 }
 
@@ -541,15 +609,13 @@ void CLI::interactiveMode() {
         input = utils::trim(input);
         if (input.empty()) continue;
 
-        if (input == "exit" || input == "quit") {
+        if (input == "/exit" || input == "/quit") {
             std::cout << utils::terminal::GREEN << "👋 Goodbye!" << utils::terminal::RESET << "\n";
             break;
         }
 
-        // Check if it's a command
-        if (input == "help" || input == "models" || input == "model" || input == "config" || input == "clear" ||
-            utils::startsWith(input, "use ") || utils::startsWith(input, "temp ") ||
-            utils::startsWith(input, "safe ") || utils::startsWith(input, "auto ")) {
+        // Check if it's a command (starts with /)
+        if (!input.empty() && input[0] == '/') {
             handleCommand(input);
             continue;
         }

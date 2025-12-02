@@ -56,8 +56,86 @@ std::string ToolParser::extractParameter(const std::string& text, const std::str
     return utils::trim(value);
 }
 
+// Extract attribute value from tag like <invoke name="Bash">
+std::string ToolParser::extractAttribute(const std::string& tag, const std::string& attr) {
+    std::string pattern = attr + "=\"";
+    size_t start = tag.find(pattern);
+    if (start == std::string::npos) return "";
+
+    start += pattern.length();
+    size_t end = tag.find("\"", start);
+    if (end == std::string::npos) return "";
+
+    return tag.substr(start, end - start);
+}
+
 bool ToolParser::hasToolCalls(const std::string& response) {
-    return response.find("<tool_calls>") != std::string::npos;
+    // Support both old format and Claude's antml format
+    return response.find("<tool_calls>") != std::string::npos ||
+           response.find("<antml:function_calls>") != std::string::npos;
+}
+
+// Parse Claude's antml:function_calls format
+std::vector<ToolCall> ToolParser::parseAntmlFormat(const std::string& response) {
+    std::vector<ToolCall> toolCalls;
+
+    // Find all antml:invoke blocks
+    std::string invokeStart = "<antml:invoke name=\"";
+    std::string invokeEnd = "</antml:invoke>";
+    
+    size_t pos = 0;
+    while ((pos = response.find(invokeStart, pos)) != std::string::npos) {
+        ToolCall toolCall;
+        
+        // Extract tool name from <antml:invoke name="ToolName">
+        size_t nameStart = pos + invokeStart.length();
+        size_t nameEnd = response.find("\"", nameStart);
+        if (nameEnd == std::string::npos) break;
+        
+        toolCall.name = response.substr(nameStart, nameEnd - nameStart);
+        
+        // Find the end of this invoke block
+        size_t blockEnd = response.find(invokeEnd, pos);
+        if (blockEnd == std::string::npos) break;
+        
+        std::string block = response.substr(pos, blockEnd - pos);
+        
+        // Extract parameters from <antml:parameter name="...">value</antml:parameter>
+        std::string paramStart = "<antml:parameter name=\"";
+        std::string paramEnd = "</antml:parameter>";
+        
+        size_t pPos = 0;
+        while ((pPos = block.find(paramStart, pPos)) != std::string::npos) {
+            // Get parameter name
+            size_t pNameStart = pPos + paramStart.length();
+            size_t pNameEnd = block.find("\"", pNameStart);
+            if (pNameEnd == std::string::npos) break;
+            
+            std::string paramName = block.substr(pNameStart, pNameEnd - pNameStart);
+            
+            // Find the > after the parameter name
+            size_t valueStart = block.find(">", pNameEnd);
+            if (valueStart == std::string::npos) break;
+            valueStart++;
+            
+            // Find the closing tag
+            size_t valueEnd = block.find(paramEnd, valueStart);
+            if (valueEnd == std::string::npos) break;
+            
+            std::string paramValue = block.substr(valueStart, valueEnd - valueStart);
+            toolCall.parameters[paramName] = paramValue;
+            
+            pPos = valueEnd + paramEnd.length();
+        }
+        
+        if (!toolCall.name.empty()) {
+            toolCalls.push_back(toolCall);
+        }
+        
+        pos = blockEnd + invokeEnd.length();
+    }
+
+    return toolCalls;
 }
 
 std::vector<ToolCall> ToolParser::parseToolCalls(const std::string& response) {
@@ -67,6 +145,12 @@ std::vector<ToolCall> ToolParser::parseToolCalls(const std::string& response) {
         return toolCalls;
     }
 
+    // Check for Claude's antml format first
+    if (response.find("<antml:function_calls>") != std::string::npos) {
+        return parseAntmlFormat(response);
+    }
+
+    // Fallback to old format
     // Extract the tool_calls block
     std::string toolCallsBlock = extractTag(response, "tool_calls");
     if (toolCallsBlock.empty()) {
@@ -91,7 +175,10 @@ std::vector<ToolCall> ToolParser::parseToolCalls(const std::string& response) {
             // Common parameters to extract
             std::vector<std::string> paramNames = {
                 "command", "description", "file_path", "content",
-                "old_string", "new_string", "pattern", "path", "output_mode"
+                "old_string", "new_string", "pattern", "path", "output_mode",
+                // Aliases for common parameters
+                "file", "filename", "text", "data", "body",
+                "old", "new", "search", "replace", "find", "original", "replacement"
             };
 
             for (const auto& paramName : paramNames) {
@@ -113,22 +200,30 @@ std::string ToolParser::extractResponseText(const std::string& response) {
         return response;
     }
 
-    // Find the tool_calls block
-    size_t toolCallsStart = response.find("<tool_calls>");
-    size_t toolCallsEnd = response.find("</tool_calls>");
+    std::string result = response;
 
-    if (toolCallsStart == std::string::npos || toolCallsEnd == std::string::npos) {
-        return response;
+    // Remove antml:function_calls blocks
+    size_t antmlStart = result.find("<antml:function_calls>");
+    size_t antmlEnd = result.find("</antml:function_calls>");
+    if (antmlStart != std::string::npos && antmlEnd != std::string::npos) {
+        antmlEnd += std::string("</antml:function_calls>").length();
+        std::string before = result.substr(0, antmlStart);
+        std::string after = result.substr(antmlEnd);
+        result = before + after;
     }
 
-    toolCallsEnd += std::string("</tool_calls>").length();
+    // Remove tool_calls blocks
+    size_t toolCallsStart = result.find("<tool_calls>");
+    size_t toolCallsEnd = result.find("</tool_calls>");
+    if (toolCallsStart != std::string::npos && toolCallsEnd != std::string::npos) {
+        toolCallsEnd += std::string("</tool_calls>").length();
+        std::string before = result.substr(0, toolCallsStart);
+        std::string after = result.substr(toolCallsEnd);
+        result = before + after;
+    }
 
-    // Get text before and after tool_calls
-    std::string before = response.substr(0, toolCallsStart);
-    std::string after = response.substr(toolCallsEnd);
-
-    // Combine and trim
-    std::string result = utils::trim(before + "\n" + after);
+    // Clean up and trim
+    result = utils::trim(result);
 
     // Remove empty lines
     std::string cleaned;

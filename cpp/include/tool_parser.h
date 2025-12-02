@@ -30,6 +30,10 @@ private:
     std::string extractTag(const std::string& text, const std::string& tag);
     std::vector<std::string> extractAllTags(const std::string& text, const std::string& tag);
     std::string extractParameter(const std::string& text, const std::string& param);
+    std::string extractAttribute(const std::string& tag, const std::string& attr);
+
+    // Parse Claude's antml format
+    std::vector<ToolCall> parseAntmlFormat(const std::string& response);
 };
 
 } // namespace ollamacode
