@@ -28,6 +28,10 @@
 
 ## What's New in v2.0.5
 
+- **Fixed Slash Menu Positioning** - Command menu now stays in fixed position when near terminal bottom
+
+### v2.0.4
+
 - **Remote Ollama Support** - New `/host` command to connect to remote Ollama instances
 - **Specialized Agent System** - Automatic task analysis with agent suggestions (Explorer, Coder, Runner, Planner)
 - **Interactive Selection Menus** - Arrow-key navigation for agent and tool selection (like Claude Code)
