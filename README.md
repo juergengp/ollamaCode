@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-2.0.2-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-2.0.3-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey.svg" alt="Platform">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
   <img src="https://img.shields.io/badge/Ollama-compatible-orange.svg" alt="Ollama">
@@ -39,7 +39,7 @@
 │  | |__| | | | (_| | | | | | | (_| | |__| (_) | (_| |  __/        │
 │   \____/|_|_|\__,_|_| |_| |_|\__,_|\____\___/ \__,_|\___|        │
 │                                                                 │
-│  Interactive CLI for Ollama - Version 2.0.2 (C++)               │
+│  Interactive CLI for Ollama - Version 2.0.3 (C++)               │
 │  Type '/help' for commands, '/exit' to quit                     │
 │                                                                 │
 │  Current Configuration:                                         │
@@ -71,6 +71,7 @@
 |---------|-------------|
 | **Local AI** | Run powerful LLMs locally - no API keys, no cloud, complete privacy |
 | **Tool Execution** | AI can read files, run commands, search code, and edit files |
+| **Specialized Agents** | Explorer, Coder, Runner, Planner agents with focused capabilities |
 | **MCP Protocol** | Connect to external services via Model Context Protocol |
 | **Interactive CLI** | Beautiful terminal interface with syntax highlighting |
 | **Multi-Model** | Switch between models on the fly (`/model`) |
@@ -91,6 +92,36 @@ The AI assistant has access to these tools to help with your tasks:
 │ Glob     │ Find files by pattern (e.g., **/*.py)              │
 │ Grep     │ Search for text/patterns in files                  │
 └──────────┴────────────────────────────────────────────────────┘
+```
+
+### Specialized Agents
+
+ollamaCode includes specialized agents that focus on specific tasks with curated tool access:
+
+```
+┌────────────┬────────────────────────────────────┬─────────────────────────┐
+│ Agent      │ Description                        │ Available Tools         │
+├────────────┼────────────────────────────────────┼─────────────────────────┤
+│ 🔍 Explorer │ Read-only codebase exploration     │ Glob, Grep, Read        │
+│ 💻 Coder    │ Write and modify code              │ Read, Write, Edit, Glob │
+│ ▶️ Runner   │ Execute commands and tests         │ Bash, Read              │
+│ 📋 Planner  │ Plan tasks without executing       │ Glob, Grep, Read        │
+│ 🤖 General  │ Full assistant (default)           │ All tools               │
+└────────────┴────────────────────────────────────┴─────────────────────────┘
+```
+
+When you enter a prompt, ollamaCode analyzes your task and suggests the most appropriate agent:
+
+```
+You> Find all TODO comments in the project
+
+Select an approach:
+
+ > 🔍 explorer - Read-only exploration of codebase
+   🤖 Use general agent (all tools)
+   ✏️  Enter custom instruction
+
+(Use arrow keys to select, Enter to confirm, Esc to cancel)
 ```
 
 ### MCP (Model Context Protocol) Support
@@ -262,6 +293,18 @@ Found 5 open issues:
 | `/clear` | Clear the screen |
 | `/exit` | Exit ollamaCode |
 
+### Agent Commands
+
+| Command | Description |
+|---------|-------------|
+| `/agent` | Show current agent status |
+| `/agent on/off` | Enable/disable agent selection mode |
+| `/explore` | Switch to Explorer agent (read-only) |
+| `/code` | Switch to Coder agent (code changes) |
+| `/run` | Switch to Runner agent (commands) |
+| `/plan` | Switch to Planner agent (planning) |
+| `/general` | Switch to General agent (all tools) |
+
 ## Configuration
 
 ### Main Configuration
@@ -388,16 +431,20 @@ ollamaCode/
 │   └── ollamacode         # macOS binary
 ├── cpp/                    # C++ source code
 │   ├── include/           # Header files
+│   │   ├── agent.h        # Agent system
 │   │   ├── cli.h
 │   │   ├── config.h
 │   │   ├── mcp_client.h   # MCP client
 │   │   ├── ollama_client.h
+│   │   ├── task_suggester.h # Task analysis
 │   │   ├── tool_executor.h
 │   │   └── tool_parser.h
 │   ├── src/               # Implementation
 │   │   ├── main.cpp
+│   │   ├── agent.cpp      # Agent definitions
 │   │   ├── cli.cpp
 │   │   ├── mcp_client.cpp
+│   │   ├── task_suggester.cpp
 │   │   └── ...
 │   └── CMakeLists.txt
 ├── docs/                   # Documentation
