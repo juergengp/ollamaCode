@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-VERSION="2.0.0"
+VERSION="2.0.5"
 RELEASE="1"
 NAME="ollamacode"
 
