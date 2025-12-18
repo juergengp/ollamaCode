@@ -1,16 +1,16 @@
 class Ollamacode < Formula
   desc "Local AI coding assistant powered by Ollama - Claude Code experience, zero cloud"
   homepage "https://github.com/juergengp/ollamaCode"
-  version "2.0.3"
+  version "2.0.4"
   license "MIT"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/juergengp/ollamaCode/releases/download/v2.0.3/ollamacode-macos-arm64"
-      sha256 "b7cdf80ff105056b323e3259a32ebb0b7a86fadf4ed83d06013e4d000a057677"
+      url "https://github.com/juergengp/ollamaCode/raw/main/bin/ollamacode-arm64"
+      sha256 "5e834d187156a76b3fc371909046b69702ef76696ebb8118cba4010964aad932"
     else
-      url "https://github.com/juergengp/ollamaCode/releases/download/v2.0.3/ollamacode-macos-x86_64"
-      sha256 "6531cc1df42b66eb9714d170981c87ee255f9a1a5e9b6bac36ca9b73b3afa5e4"
+      url "https://github.com/juergengp/ollamaCode/raw/main/bin/ollamacode-x86_64"
+      sha256 "877afacaf5880c47b9283bbf8c8f4ac3cb81b5594f76f02dad2e04d15da6526d"
     end
   end
 
