@@ -55,7 +55,7 @@ bool CLI::parseArgs(int argc, char* argv[]) {
             printHelp();
             return false;
         } else if (arg == "-v" || arg == "--version") {
-            std::cout << "ollamaCode version 2.0.3 (C++)" << std::endl;
+            std::cout << "ollamaCode version 2.0.4 (C++)" << std::endl;
             return false;
         } else if (arg == "-m" || arg == "--model") {
             if (i + 1 < argc) {
@@ -97,7 +97,7 @@ void CLI::printBanner() {
 
 )" << utils::terminal::RESET;
 
-    std::cout << utils::terminal::BLUE << "Interactive CLI for Ollama - Version 2.0.3 (C++)" << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::BLUE << "Interactive CLI for Ollama - Version 2.0.4 (C++)" << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::YELLOW << "Type '/help' for commands, '/exit' to quit" << utils::terminal::RESET << "\n\n";
 }
 
@@ -120,6 +120,7 @@ INTERACTIVE COMMANDS (use /command):
     /models                 List available models
     /model                  Interactive model selector
     /use MODEL              Switch to different model
+    /host URL               Set Ollama host (e.g., http://192.168.1.100:11434)
     /temp NUM               Set temperature
     /safe [on|off]          Toggle safe mode
     /auto [on|off]          Toggle auto-approve
@@ -1039,6 +1040,29 @@ void CLI::handleCommand(const std::string& input) {
         std::string model = cmd.substr(4);
         config_->setModel(model);
         utils::terminal::printSuccess("Switched to model: " + model);
+    } else if (utils::startsWith(cmd, "host ")) {
+        std::string host = utils::trim(cmd.substr(5));
+        if (host.empty()) {
+            utils::terminal::printInfo("Current host: " + config_->getOllamaHost());
+        } else {
+            // Ensure host has http:// prefix
+            if (host.find("://") == std::string::npos) {
+                host = "http://" + host;
+            }
+            config_->setOllamaHost(host);
+            // Recreate the client with the new host
+            client_ = std::make_unique<OllamaClient>(host);
+            utils::terminal::printSuccess("Ollama host set to: " + host);
+            // Test connection
+            auto models = client_->listModels();
+            if (models.empty()) {
+                utils::terminal::printWarning("Warning: Could not connect to " + host);
+            } else {
+                utils::terminal::printSuccess("Connected! " + std::to_string(models.size()) + " models available.");
+            }
+        }
+    } else if (cmd == "host") {
+        utils::terminal::printInfo("Current host: " + config_->getOllamaHost());
     } else if (utils::startsWith(cmd, "temp ")) {
         double temp = std::stod(cmd.substr(5));
         config_->setTemperature(temp);
