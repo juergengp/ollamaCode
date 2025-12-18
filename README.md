@@ -479,7 +479,6 @@ sudo cp ollamacode /usr/local/bin/
 | [MCP_SETUP.md](docs/MCP_SETUP.md) | Complete MCP configuration guide |
 | [MACOS_QUICKSTART.md](MACOS_QUICKSTART.md) | Quick start guide for macOS |
 | [MACOS_SETUP.md](MACOS_SETUP.md) | Detailed macOS setup |
-| [VERSIONS.md](VERSIONS.md) | Comparison of Bash vs C++ versions |
 
 ## Architecture
 
@@ -507,9 +506,8 @@ ollamaCode/
 │   └── CMakeLists.txt
 ├── docs/                   # Documentation
 │   └── MCP_SETUP.md
-├── examples/              # Example configurations
-│   └── mcp_servers.json
-└── lib/                   # Bash version (legacy)
+└── examples/              # Example configurations
+    └── mcp_servers.json
 ```
 
 ## Why ollamaCode?
