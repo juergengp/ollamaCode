@@ -184,6 +184,20 @@ std::vector<int> CommandMenu::filterCommands(const std::string& filter) {
 
 void CommandMenu::renderMenu(const std::string& filter, int selected_index,
                             const std::vector<int>& matching_indices) {
+    // Calculate how many lines we'll need
+    int lines_needed = 1;  // Input line
+    if (matching_indices.empty()) {
+        lines_needed = 2;  // Input + "no matches" message
+    } else {
+        const int max_visible = 8;
+        int visible_count = std::min(static_cast<int>(matching_indices.size()), max_visible);
+        lines_needed = visible_count + 1;  // items + input line
+        if (matching_indices.size() > static_cast<size_t>(max_visible)) {
+            lines_needed++;  // scroll indicator
+        }
+        lines_needed++;  // hint line
+    }
+
     // Clear previous menu: first move to start of rendered area, then clear each line
     if (menu_lines_rendered_ > 0) {
         // We're currently at the input line (top of menu)
@@ -197,6 +211,18 @@ void CommandMenu::renderMenu(const std::string& filter, int selected_index,
         // Move back up to the start
         if (menu_lines_rendered_ > 1) {
             std::cout << "\033[" << (menu_lines_rendered_ - 1) << "A";
+        }
+        std::cout << "\r";
+        std::cout.flush();
+    } else {
+        // First render: reserve space by printing newlines to trigger any needed scrolling
+        // This ensures the terminal scrolls before we start positioning content
+        for (int i = 0; i < lines_needed - 1; i++) {
+            std::cout << "\n";
+        }
+        // Move back up to where we started
+        if (lines_needed > 1) {
+            std::cout << "\033[" << (lines_needed - 1) << "A";
         }
         std::cout << "\r";
         std::cout.flush();
