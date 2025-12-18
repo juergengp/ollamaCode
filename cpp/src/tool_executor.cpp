@@ -12,6 +12,29 @@
 
 namespace ollamacode {
 
+// Helper function to count lines in a string
+static int countLines(const std::string& str) {
+    if (str.empty()) return 0;
+    int count = 1;
+    for (char c : str) {
+        if (c == '\n') count++;
+    }
+    // Don't count trailing newline as extra line
+    if (!str.empty() && str.back() == '\n') count--;
+    return count;
+}
+
+// Helper function to split string into lines
+static std::vector<std::string> splitLines(const std::string& str) {
+    std::vector<std::string> lines;
+    std::istringstream iss(str);
+    std::string line;
+    while (std::getline(iss, line)) {
+        lines.push_back(line);
+    }
+    return lines;
+}
+
 ToolExecutor::ToolExecutor(Config& config)
     : config_(config)
     , confirm_callback_(nullptr)
@@ -242,6 +265,41 @@ ToolResult ToolExecutor::executeWrite(const ToolCall& tool_call) {
         }
     }
 
+    // Check if this is a new file or overwrite
+    bool isNewFile = !utils::fileExists(file_path);
+    std::string oldContent;
+    int oldLineCount = 0;
+    if (!isNewFile) {
+        oldContent = utils::readFile(file_path);
+        oldLineCount = countLines(oldContent);
+    }
+
+    int newLineCount = countLines(content);
+
+    // Show what will happen
+    if (isNewFile) {
+        std::cout << utils::terminal::GREEN << "Creating new file with "
+                  << newLineCount << " lines" << utils::terminal::RESET << "\n\n";
+    } else {
+        int linesDiff = newLineCount - oldLineCount;
+        std::cout << utils::terminal::CYAN << "Overwriting file:"
+                  << utils::terminal::RESET << "\n";
+        std::cout << utils::terminal::RED << "  Old: " << oldLineCount << " lines"
+                  << utils::terminal::RESET << "\n";
+        std::cout << utils::terminal::GREEN << "  New: " << newLineCount << " lines"
+                  << utils::terminal::RESET << "\n";
+        if (linesDiff > 0) {
+            std::cout << utils::terminal::GREEN << "  Net: +" << linesDiff << " lines"
+                      << utils::terminal::RESET << "\n\n";
+        } else if (linesDiff < 0) {
+            std::cout << utils::terminal::RED << "  Net: " << linesDiff << " lines"
+                      << utils::terminal::RESET << "\n\n";
+        } else {
+            std::cout << utils::terminal::YELLOW << "  Net: 0 lines (same size)"
+                      << utils::terminal::RESET << "\n\n";
+        }
+    }
+
     // Write file
     if (!utils::writeFile(file_path, content)) {
         result.success = false;
@@ -252,10 +310,27 @@ ToolResult ToolExecutor::executeWrite(const ToolCall& tool_call) {
 
     result.success = true;
     result.exit_code = 0;
-    result.output = "File written successfully";
 
-    utils::terminal::printSuccess(result.output);
-    std::cout << utils::terminal::CYAN << "Lines written: " << std::count(content.begin(), content.end(), '\n') + 1 << utils::terminal::RESET << "\n\n";
+    if (isNewFile) {
+        result.output = "Created new file with " + std::to_string(newLineCount) + " lines";
+        utils::terminal::printSuccess("File created");
+        std::cout << utils::terminal::GREEN << "  +" << newLineCount << " lines"
+                  << utils::terminal::RESET << "\n\n";
+    } else {
+        int linesDiff = newLineCount - oldLineCount;
+        std::ostringstream output_msg;
+        output_msg << "File overwritten (";
+        if (linesDiff >= 0) {
+            output_msg << "+" << linesDiff;
+        } else {
+            output_msg << linesDiff;
+        }
+        output_msg << " lines)";
+        result.output = output_msg.str();
+        utils::terminal::printSuccess("File written");
+        std::cout << utils::terminal::CYAN << "  " << newLineCount << " lines total"
+                  << utils::terminal::RESET << "\n\n";
+    }
 
     return result;
 }
@@ -325,7 +400,8 @@ ToolResult ToolExecutor::executeEdit(const ToolCall& tool_call) {
     }
 
     // Check if old_string exists
-    if (content.find(old_string) == std::string::npos) {
+    size_t match_pos = content.find(old_string);
+    if (match_pos == std::string::npos) {
         result.success = false;
         result.error = "String not found in file";
         utils::terminal::printError(result.error);
@@ -340,7 +416,40 @@ ToolResult ToolExecutor::executeEdit(const ToolCall& tool_call) {
         pos += old_string.length();
     }
 
-    std::cout << utils::terminal::CYAN << "Found " << count << " occurrence(s)" << utils::terminal::RESET << "\n\n";
+    // Calculate line counts for diff display
+    int old_lines = countLines(old_string);
+    int new_lines = countLines(new_string);
+    int lines_removed = old_lines;
+    int lines_added = new_lines;
+
+    // Show diff-style output
+    std::cout << utils::terminal::CYAN << "Changes (" << count << " occurrence(s)):"
+              << utils::terminal::RESET << "\n\n";
+
+    // Show removed lines (red)
+    std::cout << utils::terminal::RED << "--- Removed:" << utils::terminal::RESET << "\n";
+    auto oldLines = splitLines(old_string);
+    for (const auto& line : oldLines) {
+        std::cout << utils::terminal::RED << "- " << line << utils::terminal::RESET << "\n";
+    }
+
+    std::cout << "\n";
+
+    // Show added lines (green)
+    std::cout << utils::terminal::GREEN << "+++ Added:" << utils::terminal::RESET << "\n";
+    auto newLines = splitLines(new_string);
+    for (const auto& line : newLines) {
+        std::cout << utils::terminal::GREEN << "+ " << line << utils::terminal::RESET << "\n";
+    }
+
+    std::cout << "\n";
+
+    // Show summary
+    std::cout << utils::terminal::YELLOW << "Summary: "
+              << utils::terminal::RED << "-" << lines_removed << " lines"
+              << utils::terminal::RESET << " / "
+              << utils::terminal::GREEN << "+" << lines_added << " lines"
+              << utils::terminal::RESET << "\n\n";
 
     // Confirm
     if (!requestConfirmation("Edit", "Apply changes?")) {
@@ -371,10 +480,24 @@ ToolResult ToolExecutor::executeEdit(const ToolCall& tool_call) {
 
     result.success = true;
     result.exit_code = 0;
-    result.output = "File edited successfully";
 
-    utils::terminal::printSuccess(result.output);
-    std::cout << utils::terminal::CYAN << "Backup saved: " << backup_path << utils::terminal::RESET << "\n\n";
+    std::ostringstream output_msg;
+    output_msg << "File edited successfully ("
+               << utils::terminal::RED << "-" << lines_removed
+               << utils::terminal::RESET << "/"
+               << utils::terminal::GREEN << "+" << lines_added
+               << utils::terminal::RESET << " lines)";
+    result.output = output_msg.str();
+
+    utils::terminal::printSuccess("Edit complete");
+    std::cout << utils::terminal::CYAN << "  " << count << " replacement(s) made"
+              << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::RED << "  -" << lines_removed << " lines removed"
+              << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::GREEN << "  +" << lines_added << " lines added"
+              << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "  Backup: " << backup_path
+              << utils::terminal::RESET << "\n\n";
 
     return result;
 }

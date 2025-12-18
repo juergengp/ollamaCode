@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(ollamacode VERSION 2.0.2 LANGUAGES CXX)
+project(ollamacode VERSION 2.0.3 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -45,6 +45,8 @@ set(SOURCES
     src/session_manager.cpp
     src/command_menu.cpp
     src/mcp_client.cpp
+    src/agent.cpp
+    src/task_suggester.cpp
 )
 
 # Header files
@@ -59,6 +61,8 @@ set(HEADERS
     include/command_menu.h
     include/mcp_client.h
     include/json.hpp
+    include/agent.h
+    include/task_suggester.h
 )
 
 # Main executable

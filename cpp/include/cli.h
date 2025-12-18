@@ -11,6 +11,8 @@
 #include "session_manager.h"
 #include "command_menu.h"
 #include "mcp_client.h"
+#include "agent.h"
+#include "task_suggester.h"
 
 namespace ollamacode {
 
@@ -42,6 +44,8 @@ private:
 
     // Get system prompt
     std::string getSystemPrompt();
+    std::string getDefaultSystemPrompt();
+    std::string getToolFormatPrompt();
 
     // UI helpers
     void printBanner();
@@ -57,6 +61,14 @@ private:
     void handleMCPCommand(const std::string& cmd);
     std::string getMCPToolsPrompt();
 
+    // Agent helpers
+    void switchAgent(AgentType type);
+    void printAgentStatus();
+    void handleAgentCommand(const std::string& cmd);
+    void processWithAgentSelection(const std::string& input);
+    void executeAgentTask(const TaskSuggestion& task, const std::string& originalInput);
+    void executeAllAgentTasks(const std::vector<TaskSuggestion>& tasks, const std::string& originalInput);
+
     // Command handlers
     void handleCommand(const std::string& input);
 
@@ -71,6 +83,11 @@ private:
     std::unique_ptr<SessionManager> session_manager_;
     std::unique_ptr<CommandMenu> command_menu_;
     std::unique_ptr<MCPClient> mcp_client_;
+    std::unique_ptr<TaskSuggester> task_suggester_;
+
+    // Current agent
+    Agent currentAgent_;
+    bool agentModeEnabled_;
 
     // Options from command line
     std::string direct_prompt_;

@@ -1,6 +1,8 @@
 #include "cli.h"
 #include "utils.h"
 #include "command_menu.h"
+#include "agent.h"
+#include "task_suggester.h"
 #include <iostream>
 #include <sstream>
 #include <cstring>
@@ -16,7 +18,8 @@
 namespace ollamacode {
 
 CLI::CLI()
-    : temperature_override_(-1.0)
+    : agentModeEnabled_(true)  // Enable agent mode by default
+    , temperature_override_(-1.0)
     , auto_approve_override_(false)
     , unsafe_mode_override_(false)
 {
@@ -28,6 +31,10 @@ CLI::CLI()
     executor_ = std::make_unique<ToolExecutor>(*config_);
     command_menu_ = std::make_unique<CommandMenu>();
     mcp_client_ = std::make_unique<MCPClient>();
+    task_suggester_ = std::make_unique<TaskSuggester>();
+
+    // Initialize with general agent
+    currentAgent_ = AgentRegistry::getAgent(AgentType::General);
 
     // Set confirmation callback
     executor_->setConfirmCallback([this](const std::string& tool_name, const std::string& description) {
@@ -48,7 +55,7 @@ bool CLI::parseArgs(int argc, char* argv[]) {
             printHelp();
             return false;
         } else if (arg == "-v" || arg == "--version") {
-            std::cout << "ollamaCode version 2.0.2 (C++)" << std::endl;
+            std::cout << "ollamaCode version 2.0.3 (C++)" << std::endl;
             return false;
         } else if (arg == "-m" || arg == "--model") {
             if (i + 1 < argc) {
@@ -90,7 +97,7 @@ void CLI::printBanner() {
 
 )" << utils::terminal::RESET;
 
-    std::cout << utils::terminal::BLUE << "Interactive CLI for Ollama - Version 2.0.2 (C++)" << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::BLUE << "Interactive CLI for Ollama - Version 2.0.3 (C++)" << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::YELLOW << "Type '/help' for commands, '/exit' to quit" << utils::terminal::RESET << "\n\n";
 }
 
@@ -125,6 +132,16 @@ INTERACTIVE COMMANDS (use /command):
     /config                 Show configuration
     /exit, /quit            Exit ollamacode
 
+AGENT COMMANDS:
+    /agent                  Show current agent status
+    /agent on               Enable agent selection mode
+    /agent off              Disable agent selection mode
+    /explore                Switch to explorer agent (read-only)
+    /code                   Switch to coder agent (code changes)
+    /run                    Switch to runner agent (commands)
+    /plan                   Switch to planner agent (planning)
+    /general                Switch to general agent (all tools)
+
 EXAMPLES:
     ollamacode                              # Start interactive mode
     ollamacode "List all Python files"      # Single prompt with tools
@@ -148,12 +165,195 @@ void CLI::printConfig() {
     std::cout << "  Safe Mode:    " << (config_->getSafeMode() ? "true" : "false") << "\n";
     std::cout << "  Auto Approve: " << (config_->getAutoApprove() ? "true" : "false") << "\n";
     std::cout << "  MCP Enabled:  " << (config_->getMCPEnabled() ? std::string(utils::terminal::GREEN) + "true" : "false") << utils::terminal::RESET << "\n";
+    std::cout << "  Agent Mode:   " << (agentModeEnabled_ ? std::string(utils::terminal::GREEN) + "enabled" : "disabled") << utils::terminal::RESET << "\n";
+    std::cout << "  Current Agent:" << utils::terminal::GREEN << " " << currentAgent_.getDisplayName() << utils::terminal::RESET << "\n";
 
     char cwd[1024];
     if (getcwd(cwd, sizeof(cwd))) {
         std::cout << "  Working Dir:  " << cwd << "\n";
     }
     std::cout << "\n";
+}
+
+// Agent helper methods
+void CLI::switchAgent(AgentType type) {
+    currentAgent_ = AgentRegistry::getAgent(type);
+    std::cout << utils::terminal::GREEN << "Switched to " << currentAgent_.getDisplayName()
+              << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::YELLOW << "  " << currentAgent_.description
+              << utils::terminal::RESET << "\n";
+
+    if (!currentAgent_.allowedTools.empty()) {
+        std::cout << utils::terminal::CYAN << "  Tools: ";
+        for (const auto& tool : currentAgent_.allowedTools) {
+            std::cout << tool << " ";
+        }
+        std::cout << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+}
+
+void CLI::printAgentStatus() {
+    std::cout << utils::terminal::CYAN << utils::terminal::BOLD << "Agent Status:" << utils::terminal::RESET << "\n";
+    std::cout << "  Mode:    " << (agentModeEnabled_ ? std::string(utils::terminal::GREEN) + "enabled" : "disabled")
+              << utils::terminal::RESET << "\n";
+    std::cout << "  Current: " << utils::terminal::GREEN << currentAgent_.getDisplayName()
+              << utils::terminal::RESET << "\n";
+    std::cout << "           " << currentAgent_.description << "\n";
+
+    if (!currentAgent_.allowedTools.empty()) {
+        std::cout << "  Tools:   ";
+        for (const auto& tool : currentAgent_.allowedTools) {
+            std::cout << tool << " ";
+        }
+        std::cout << "\n";
+    } else {
+        std::cout << "  Tools:   all available\n";
+    }
+
+    std::cout << "\n" << utils::terminal::CYAN << "Available Agents:" << utils::terminal::RESET << "\n";
+    auto agents = AgentRegistry::getAllAgents();
+    for (const auto& agent : agents) {
+        std::cout << "  " << agent.getDisplayName() << " - " << agent.description << "\n";
+    }
+    std::cout << "\n";
+}
+
+void CLI::handleAgentCommand(const std::string& cmd) {
+    if (cmd == "agent" || cmd == "agent status") {
+        printAgentStatus();
+    } else if (cmd == "agent on") {
+        agentModeEnabled_ = true;
+        utils::terminal::printSuccess("Agent selection mode enabled");
+    } else if (cmd == "agent off") {
+        agentModeEnabled_ = false;
+        utils::terminal::printSuccess("Agent selection mode disabled");
+    } else if (cmd == "explore") {
+        switchAgent(AgentType::Explorer);
+    } else if (cmd == "code") {
+        switchAgent(AgentType::Coder);
+    } else if (cmd == "run") {
+        switchAgent(AgentType::Runner);
+    } else if (cmd == "plan") {
+        switchAgent(AgentType::Planner);
+    } else if (cmd == "general") {
+        switchAgent(AgentType::General);
+    } else {
+        utils::terminal::printError("Unknown agent command. Try: /agent, /explore, /code, /run, /plan, /general");
+    }
+}
+
+void CLI::processWithAgentSelection(const std::string& input) {
+    // Analyze the task and get suggestions
+    auto suggestions = task_suggester_->analyzeTask(input);
+
+    // If only one suggestion and it's general agent, skip the menu
+    if (suggestions.size() == 1 && suggestions[0].agentType == AgentType::General) {
+        executeAgentTask(suggestions[0], input);
+        return;
+    }
+
+    // Show agent selection menu
+    auto result = task_suggester_->showAgentSelectionMenu(suggestions, input);
+
+    if (result.cancelled) {
+        std::cout << utils::terminal::YELLOW << "Cancelled." << utils::terminal::RESET << "\n\n";
+        return;
+    }
+
+    // Handle custom input
+    if (!result.customInput.empty()) {
+        // Re-analyze with custom input
+        processWithAgentSelection(result.customInput);
+        return;
+    }
+
+    // Execute all tasks in sequence
+    if (result.executeAll && !result.selectedTasks.empty()) {
+        executeAllAgentTasks(result.selectedTasks, input);
+        return;
+    }
+
+    // Execute single selected task
+    if (!result.selectedTasks.empty()) {
+        executeAgentTask(result.selectedTasks[0], input);
+    } else {
+        // Execute with selected agent type
+        TaskSuggestion task;
+        task.agentType = result.selectedAgent;
+        task.taskDescription = input;
+        executeAgentTask(task, input);
+    }
+}
+
+void CLI::executeAgentTask(const TaskSuggestion& task, const std::string& originalInput) {
+    // Switch to the appropriate agent
+    Agent previousAgent = currentAgent_;
+    currentAgent_ = AgentRegistry::getAgent(task.agentType);
+
+    std::cout << utils::terminal::CYAN << utils::terminal::BOLD
+              << currentAgent_.getDisplayName() << " working..."
+              << utils::terminal::RESET << "\n\n";
+
+    auto start = std::chrono::steady_clock::now();
+
+    json messages = buildMessages(originalInput);
+
+    std::string model = model_override_.empty() ? config_->getModel() : model_override_;
+
+    // Use agent's temperature if specified
+    double temp;
+    if (currentAgent_.temperatureOverride >= 0) {
+        temp = currentAgent_.temperatureOverride;
+    } else {
+        temp = temperature_override_ < 0 ? config_->getTemperature() : temperature_override_;
+    }
+
+    auto response = client_->chat(model, messages, temp, config_->getMaxTokens());
+
+    if (!response.isSuccess()) {
+        utils::terminal::printError("Failed to get AI response: " + response.error);
+        currentAgent_ = previousAgent;
+        return;
+    }
+
+    processResponseWithMessages(messages, response.response);
+
+    auto end = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+
+    std::cout << "\n" << utils::terminal::MAGENTA << "───────────────────────────────────────" << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::MAGENTA << "⏱ " << currentAgent_.getDisplayName()
+              << " completed in " << duration.count() << "s" << utils::terminal::RESET << "\n\n";
+
+    // Restore previous agent
+    currentAgent_ = previousAgent;
+}
+
+void CLI::executeAllAgentTasks(const std::vector<TaskSuggestion>& tasks, const std::string& originalInput) {
+    std::cout << utils::terminal::CYAN << utils::terminal::BOLD
+              << "Executing " << tasks.size() << " tasks in sequence..."
+              << utils::terminal::RESET << "\n\n";
+
+    auto totalStart = std::chrono::steady_clock::now();
+
+    for (size_t i = 0; i < tasks.size(); i++) {
+        const auto& task = tasks[i];
+        Agent agent = AgentRegistry::getAgent(task.agentType);
+
+        std::cout << utils::terminal::CYAN << "[" << (i + 1) << "/" << tasks.size() << "] "
+                  << agent.getDisplayName() << ": " << task.reasoning
+                  << utils::terminal::RESET << "\n";
+
+        executeAgentTask(task, originalInput);
+    }
+
+    auto totalEnd = std::chrono::steady_clock::now();
+    auto totalDuration = std::chrono::duration_cast<std::chrono::seconds>(totalEnd - totalStart);
+
+    std::cout << utils::terminal::GREEN << utils::terminal::BOLD
+              << "All tasks completed in " << totalDuration.count() << "s"
+              << utils::terminal::RESET << "\n\n";
 }
 
 // MCP Methods
@@ -381,38 +581,8 @@ void CLI::selectModel() {
     }
 }
 
-std::string CLI::getSystemPrompt() {
-    std::string basePrompt = R"(You are an AI coding assistant with tool access. You MUST use tools to complete tasks - do NOT just describe what you would do.
-
-CRITICAL: When the user asks you to do something that requires a tool, you MUST output the XML tool call IMMEDIATELY. Do NOT explain what you're going to do. Do NOT say "I propose to..." or "Here's what I'll do...". Just output the tool call XML directly.
-
-## Available Tools
-
-**Bash** - Execute shell commands
-  - command: The shell command to run
-  - description: What the command does
-
-**Read** - Read file contents
-  - file_path: Path to file
-
-**Write** - Write/create files
-  - file_path: Path to file
-  - content: File content
-
-**Edit** - Edit existing files
-  - file_path: Path to file
-  - old_string: Text to replace
-  - new_string: Replacement text
-
-**Glob** - Find files by pattern
-  - pattern: File pattern (e.g., "*.py")
-  - path: Directory to search (optional)
-
-**Grep** - Search in files
-  - pattern: Text to find
-  - path: Where to search (optional)
-  - output_mode: "content" or "files_with_matches" (optional)
-
+std::string CLI::getToolFormatPrompt() {
+    return R"(
 ## Tool Usage Format
 
 Use this EXACT XML format to call tools:
@@ -443,25 +613,65 @@ Response:
 </invoke>
 </function_calls>
 
-User: "Find all Python files"
-Response:
-<function_calls>
-<invoke name="Glob">
-<parameter name="pattern">**/*.py</parameter>
-</invoke>
-</function_calls>
-
 IMPORTANT RULES:
 1. When a task requires tools, output the <function_calls> XML IMMEDIATELY without any preamble
 2. You can add a brief explanation AFTER the tool call XML, not before
 3. Never describe what tool you would use - just use it
 4. After receiving tool results, provide a helpful summary to the user
 )";
+}
+
+std::string CLI::getDefaultSystemPrompt() {
+    return R"(You are an AI coding assistant with tool access. You MUST use tools to complete tasks - do NOT just describe what you would do.
+
+CRITICAL: When the user asks you to do something that requires a tool, you MUST output the XML tool call IMMEDIATELY. Do NOT explain what you're going to do. Do NOT say "I propose to..." or "Here's what I'll do...". Just output the tool call XML directly.
+
+## Available Tools
+
+**Bash** - Execute shell commands
+  - command: The shell command to run
+  - description: What the command does
+
+**Read** - Read file contents
+  - file_path: Path to file
+
+**Write** - Write/create files
+  - file_path: Path to file
+  - content: File content
+
+**Edit** - Edit existing files
+  - file_path: Path to file
+  - old_string: Text to replace
+  - new_string: Replacement text
+
+**Glob** - Find files by pattern
+  - pattern: File pattern (e.g., "*.py")
+  - path: Directory to search (optional)
+
+**Grep** - Search in files
+  - pattern: Text to find
+  - path: Where to search (optional)
+  - output_mode: "content" or "files_with_matches" (optional)
+)";
+}
+
+std::string CLI::getSystemPrompt() {
+    std::string basePrompt;
+
+    // Use agent-specific prompt if available
+    if (!currentAgent_.systemPrompt.empty()) {
+        basePrompt = currentAgent_.systemPrompt;
+    } else {
+        basePrompt = getDefaultSystemPrompt();
+    }
+
+    // Add tool format instructions
+    basePrompt += getToolFormatPrompt();
 
     // Append MCP tools if available
     std::string mcpPrompt = getMCPToolsPrompt();
     if (!mcpPrompt.empty()) {
-        return basePrompt + mcpPrompt;
+        basePrompt += mcpPrompt;
     }
 
     return basePrompt;
@@ -637,32 +847,101 @@ void CLI::processResponseWithMessages(json& messages, const std::string& respons
         return; // No tools to execute
     }
 
-    // Debug: show parsed tool calls
-    std::cout << utils::terminal::BLUE << "Parsed " << toolCalls.size() << " tool call(s):" << utils::terminal::RESET << "\n";
-    for (size_t i = 0; i < toolCalls.size(); i++) {
-        std::cout << utils::terminal::BLUE << "  [" << (i+1) << "] " << toolCalls[i].name << " - params: ";
-        for (const auto& p : toolCalls[i].parameters) {
-            std::cout << p.first << "=\"" << p.second.substr(0, 30);
-            if (p.second.length() > 30) std::cout << "...";
-            std::cout << "\" ";
-        }
-        std::cout << utils::terminal::RESET << "\n";
-    }
-    std::cout << "\n";
+    // Filter tool calls based on current agent's allowed tools
+    std::vector<ToolCall> filteredToolCalls;
+    std::vector<ToolCall> blockedToolCalls;
 
-    // Execute tools
+    for (const auto& tool : toolCalls) {
+        if (currentAgent_.canUseTool(tool.name)) {
+            filteredToolCalls.push_back(tool);
+        } else {
+            blockedToolCalls.push_back(tool);
+        }
+    }
+
+    // Report blocked tools
+    if (!blockedToolCalls.empty()) {
+        std::cout << utils::terminal::YELLOW << "⚠ Blocked " << blockedToolCalls.size()
+                  << " tool(s) not available to " << currentAgent_.name << " agent:"
+                  << utils::terminal::RESET << "\n";
+        for (const auto& tool : blockedToolCalls) {
+            std::cout << utils::terminal::YELLOW << "  - " << tool.name << utils::terminal::RESET << "\n";
+        }
+        std::cout << "\n";
+    }
+
+    if (filteredToolCalls.empty()) {
+        std::cout << utils::terminal::YELLOW << "No executable tools for current agent."
+                  << utils::terminal::RESET << "\n\n";
+        return;
+    }
+
+    // Show tool selection menu (unless auto-approve is enabled)
+    ToolSelectionResult selection;
+    if (!config_->getAutoApprove()) {
+        selection = task_suggester_->showToolSelectionMenu(filteredToolCalls, false);
+
+        if (selection.cancelled) {
+            std::cout << utils::terminal::YELLOW << "Tool execution cancelled."
+                      << utils::terminal::RESET << "\n\n";
+            return;
+        }
+
+        if (selection.skipAll) {
+            std::cout << utils::terminal::YELLOW << "Skipped all tools."
+                      << utils::terminal::RESET << "\n\n";
+            return;
+        }
+
+        // Handle custom input (user wants to modify the request)
+        if (!selection.customInput.empty()) {
+            // Add the custom request to messages and get new response
+            messages.push_back({
+                {"role", "user"},
+                {"content", selection.customInput}
+            });
+
+            std::string model = model_override_.empty() ? config_->getModel() : model_override_;
+            double temp = temperature_override_ < 0 ? config_->getTemperature() : temperature_override_;
+
+            auto newResponse = client_->chat(model, messages, temp, config_->getMaxTokens());
+            if (newResponse.isSuccess()) {
+                processResponseWithMessages(messages, newResponse.response, iteration);
+            }
+            return;
+        }
+    } else {
+        // Auto-approve mode
+        selection.executeAll = true;
+        for (size_t i = 0; i < filteredToolCalls.size(); i++) {
+            selection.selectedIndices.push_back(i);
+        }
+    }
+
+    // Execute selected tools
+    std::vector<ToolCall> toolsToExecute;
+    if (selection.executeAll) {
+        toolsToExecute = filteredToolCalls;
+    } else {
+        for (size_t idx : selection.selectedIndices) {
+            if (idx < filteredToolCalls.size()) {
+                toolsToExecute.push_back(filteredToolCalls[idx]);
+            }
+        }
+    }
+
     std::cout << utils::terminal::CYAN << utils::terminal::BOLD
-              << "🔧 Executing " << toolCalls.size() << " tool(s)..."
+              << "🔧 Executing " << toolsToExecute.size() << " tool(s)..."
               << utils::terminal::RESET << "\n\n";
 
-    auto results = executor_->executeAll(toolCalls);
+    auto results = executor_->executeAll(toolsToExecute);
 
     // Build results summary for next AI iteration
     std::ostringstream resultsSummary;
     resultsSummary << "Tool execution results:\n\n";
 
-    for (size_t i = 0; i < toolCalls.size(); i++) {
-        resultsSummary << "Tool: " << toolCalls[i].name << "\n";
+    for (size_t i = 0; i < toolsToExecute.size(); i++) {
+        resultsSummary << "Tool: " << toolsToExecute[i].name << "\n";
         resultsSummary << "Exit Code: " << results[i].exit_code << "\n";
         resultsSummary << "Success: " << (results[i].success ? "true" : "false") << "\n";
         if (!results[i].error.empty()) {
@@ -778,6 +1057,9 @@ void CLI::handleCommand(const std::string& input) {
         utils::terminal::printSuccess("Auto-approve disabled");
     } else if (utils::startsWith(cmd, "mcp")) {
         handleMCPCommand(cmd);
+    } else if (utils::startsWith(cmd, "agent") || cmd == "explore" || cmd == "code" ||
+               cmd == "run" || cmd == "plan" || cmd == "general") {
+        handleAgentCommand(cmd);
     } else {
         utils::terminal::printError("Unknown command. Type '/help' for available commands.");
     }
@@ -881,29 +1163,36 @@ void CLI::interactiveMode() {
 
         // Process as AI prompt
         std::cout << "\n";
-        auto start = std::chrono::steady_clock::now();
 
-        json messages = buildMessages(input);
+        // Use agent selection flow if enabled, otherwise direct execution
+        if (agentModeEnabled_) {
+            processWithAgentSelection(input);
+        } else {
+            // Direct execution with current agent
+            auto start = std::chrono::steady_clock::now();
 
-        std::string model = model_override_.empty() ? config_->getModel() : model_override_;
-        double temp = temperature_override_ < 0 ? config_->getTemperature() : temperature_override_;
+            json messages = buildMessages(input);
 
-        std::cout << utils::terminal::BLUE << utils::terminal::BOLD << "🤔 Thinking..." << utils::terminal::RESET << "\n\n";
+            std::string model = model_override_.empty() ? config_->getModel() : model_override_;
+            double temp = temperature_override_ < 0 ? config_->getTemperature() : temperature_override_;
 
-        auto response = client_->chat(model, messages, temp, config_->getMaxTokens());
+            std::cout << utils::terminal::BLUE << utils::terminal::BOLD << "🤔 Thinking..." << utils::terminal::RESET << "\n\n";
 
-        if (!response.isSuccess()) {
-            utils::terminal::printError("Failed to get AI response: " + response.error);
-            continue;
+            auto response = client_->chat(model, messages, temp, config_->getMaxTokens());
+
+            if (!response.isSuccess()) {
+                utils::terminal::printError("Failed to get AI response: " + response.error);
+                continue;
+            }
+
+            processResponseWithMessages(messages, response.response);
+
+            auto end = std::chrono::steady_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+
+            std::cout << "\n" << utils::terminal::MAGENTA << "───────────────────────────────────────" << utils::terminal::RESET << "\n";
+            std::cout << utils::terminal::MAGENTA << "⏱ Duration: " << duration.count() << "s" << utils::terminal::RESET << "\n\n";
         }
-
-        processResponseWithMessages(messages, response.response);
-
-        auto end = std::chrono::steady_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
-
-        std::cout << "\n" << utils::terminal::MAGENTA << "───────────────────────────────────────" << utils::terminal::RESET << "\n";
-        std::cout << utils::terminal::MAGENTA << "⏱ Duration: " << duration.count() << "s" << utils::terminal::RESET << "\n\n";
     }
 }
 
