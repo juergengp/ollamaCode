@@ -180,19 +180,18 @@ ollama pull codellama       # Optimized for coding tasks
 ### 3. Install ollamaCode
 
 ```bash
-# Clone the repository
-git clone https://github.com/juergengp/ollamaCode.git
-cd ollamaCode
-
-# Option A: Use pre-built binary (macOS)
-cp bin/ollamacode /usr/local/bin/
+# Option A: Download universal binary (recommended)
+curl -L https://github.com/juergengp/ollamaCode/releases/latest/download/ollamacode-macos-universal -o ollamacode
+chmod +x ollamacode
+sudo mv ollamacode /usr/local/bin/
 
 # Option B: Build from source
-cd cpp
+git clone https://github.com/juergengp/ollamaCode.git
+cd ollamaCode/cpp
 mkdir build && cd build
 cmake ..
 make
-cp ollamacode /usr/local/bin/
+sudo cp ollamacode /usr/local/bin/
 ```
 
 ### 4. Run!
@@ -373,10 +372,23 @@ See [docs/MCP_SETUP.md](docs/MCP_SETUP.md) for detailed MCP configuration.
 ### Pre-built Binary (macOS)
 
 ```bash
+# Option A: Download universal binary directly (recommended)
+curl -L https://github.com/juergengp/ollamaCode/releases/latest/download/ollamacode-macos-universal -o ollamacode
+chmod +x ollamacode
+sudo mv ollamacode /usr/local/bin/
+
+# Option B: Clone and copy from repository
 git clone https://github.com/juergengp/ollamaCode.git
 cd ollamaCode
-sudo cp bin/ollamacode /usr/local/bin/
+sudo cp bin/ollamacode-universal /usr/local/bin/ollamacode
 ```
+
+**Available binaries:**
+| Binary | Architecture |
+|--------|--------------|
+| `ollamacode-macos-universal` | All Macs (recommended) |
+| `ollamacode-macos-arm64` | Apple Silicon (M1/M2/M3/M4) |
+| `ollamacode-macos-x86_64` | Intel Macs |
 
 ### Build from Source
 
