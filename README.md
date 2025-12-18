@@ -26,6 +26,15 @@
 
 ---
 
+## What's New in v2.0.3
+
+- **Specialized Agent System** - Automatic task analysis with agent suggestions (Explorer, Coder, Runner, Planner)
+- **Interactive Selection Menus** - Arrow-key navigation for agent and tool selection (like Claude Code)
+- **Diff Display for Code Changes** - Shows lines added/removed when editing files
+- **Fixed Tool Parsing** - Improved XML parsing for reliable tool execution with all Ollama models
+
+---
+
 ## What is ollamaCode?
 
 **ollamaCode** brings the power of AI coding assistants to your local machine. It's like having Claude Code or GitHub Copilot, but running entirely on your hardware with your choice of open-source LLMs via [Ollama](https://ollama.ai).
@@ -164,6 +173,7 @@ ollama serve
 # Recommended models for tool use
 ollama pull llama3.1        # Good balance of speed and capability
 ollama pull qwen2.5:14b     # Excellent at following instructions
+ollama pull qwen3:4b        # Fast and lightweight
 ollama pull codellama       # Optimized for coding tasks
 ```
 
@@ -353,6 +363,7 @@ See [docs/MCP_SETUP.md](docs/MCP_SETUP.md) for detailed MCP configuration.
 | `llama3.1` | 8B | General coding tasks | Excellent |
 | `llama3.1:70b` | 70B | Complex reasoning | Excellent |
 | `qwen2.5:14b` | 14B | Instruction following | Excellent |
+| `qwen3:4b` | 4B | Fast responses, lightweight | Good |
 | `codellama` | 7B | Code generation | Good |
 | `mistral-nemo` | 12B | Balanced performance | Good |
 | `deepseek-coder` | 6.7B | Code-specific tasks | Good |
