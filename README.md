@@ -11,6 +11,7 @@
 <p align="center">
   <a href="#features">Features</a> •
   <a href="#quick-start">Quick Start</a> •
+  <a href="#macos-gui">macOS GUI</a> •
   <a href="#mcp-support">MCP Support</a> •
   <a href="#installation">Installation</a> •
   <a href="#documentation">Documentation</a>
@@ -215,6 +216,39 @@ ollamacode --mcp
 ollamacode
 /host http://192.168.1.100:11434
 ```
+
+## macOS GUI
+
+ollamaCode also includes a **native macOS GUI application** built with SwiftUI. It provides the same powerful features as the CLI in a modern graphical interface.
+
+### Features
+
+- **Native SwiftUI Interface** - Modern macOS app with familiar UI patterns
+- **Full Agent Support** - Explorer, Coder, Runner, Planner, and General agents
+- **Tool Execution** - Visual tool confirmation with approve/deny per operation
+- **Streaming Responses** - See AI responses as they're generated
+- **Session Management** - Save, load, and export conversations
+- **Shared Configuration** - Uses the same SQLite config as the CLI
+
+### Building the GUI
+
+```bash
+# Install XcodeGen
+brew install xcodegen
+
+# Generate Xcode project
+cd gui
+xcodegen generate
+
+# Open in Xcode and build (Cmd+R)
+open OllamaCode.xcodeproj
+```
+
+**Requirements:** macOS 13.0+, Xcode 15+
+
+See [gui/README.md](gui/README.md) for detailed build instructions.
+
+---
 
 ## Usage Examples
 
@@ -486,7 +520,7 @@ sudo cp ollamacode /usr/local/bin/
 ollamaCode/
 ├── bin/                    # Pre-built binaries
 │   └── ollamacode         # macOS binary
-├── cpp/                    # C++ source code
+├── cpp/                    # C++ CLI source code
 │   ├── include/           # Header files
 │   │   ├── agent.h        # Agent system
 │   │   ├── cli.h
@@ -504,6 +538,14 @@ ollamaCode/
 │   │   ├── task_suggester.cpp
 │   │   └── ...
 │   └── CMakeLists.txt
+├── gui/                    # Native macOS GUI (SwiftUI)
+│   ├── OllamaCode/        # Swift source code
+│   │   ├── App/           # App entry point
+│   │   ├── Views/         # SwiftUI views
+│   │   ├── ViewModels/    # MVVM view models
+│   │   ├── Models/        # Data models
+│   │   └── Services/      # Business logic
+│   └── project.yml        # XcodeGen config
 ├── docs/                   # Documentation
 │   └── MCP_SETUP.md
 └── examples/              # Example configurations
