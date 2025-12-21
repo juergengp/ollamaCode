@@ -7,7 +7,7 @@ class Ollamacode < Formula
   on_macos do
     if Hardware::CPU.arm?
       url "https://github.com/juergengp/ollamaCode/raw/main/bin/ollamacode-arm64"
-      sha256 "d6a8c28601bd08a0db972d63f06841196c54baaed614a4cdece715a4758c4311"
+      sha256 "5133c9af96bc45bcaa6c5d5619666d9fbd02a47a967c2297ed4f179c5b78f601"
     else
       url "https://github.com/juergengp/ollamaCode/raw/main/bin/ollamacode-x86_64"
       sha256 "877afacaf5880c47b9283bbf8c8f4ac3cb81b5594f76f02dad2e04d15da6526d"
