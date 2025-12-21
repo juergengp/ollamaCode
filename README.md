@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-2.0.5-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-2.1.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey.svg" alt="Platform">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
   <img src="https://img.shields.io/badge/Ollama-compatible-orange.svg" alt="Ollama">
@@ -27,7 +27,14 @@
 
 ---
 
-## What's New in v2.0.5
+## What's New in v2.1.0
+
+- **Native macOS GUI** - Brand new SwiftUI-based native app with full feature parity
+- **Model Selector** - Switch between Ollama models directly from the toolbar
+- **Visual Tool Confirmation** - Approve/deny tool executions with a modern UI
+- **Session Management** - Save, load, and export conversations
+
+### v2.0.5
 
 - **Fixed Slash Menu Positioning** - Command menu now stays in fixed position when near terminal bottom
 
@@ -54,7 +61,7 @@
 │  | |__| | | | (_| | | | | | | (_| | |__| (_) | (_| |  __/        │
 │   \____/|_|_|\__,_|_| |_| |_|\__,_|\____\___/ \__,_|\___|        │
 │                                                                 │
-│  Interactive CLI for Ollama - Version 2.0.5 (C++)               │
+│  Interactive CLI for Ollama - Version 2.1.0 (C++)               │
 │  Type '/help' for commands, '/exit' to quit                     │
 │                                                                 │
 │  Current Configuration:                                         │

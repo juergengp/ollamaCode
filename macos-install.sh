@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # ollamaCode - macOS Installation Script
-# Version: 2.0.5
+# Version: 2.1.0
 # Installs the C++ version with full feature support
 #
 
@@ -31,7 +31,7 @@ cat << 'EOF'
   \____/|_|_|\__,_|_| |_| |_|\__,_|\____\___/ \__,_|\___|
 
 EOF
-echo -e "${NC}${CYAN}${BOLD}macOS Installation Script - Version 2.0.5${NC}"
+echo -e "${NC}${CYAN}${BOLD}macOS Installation Script - Version 2.1.0${NC}"
 echo ""
 
 # Check if running on macOS

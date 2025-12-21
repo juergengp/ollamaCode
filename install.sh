@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # ollamaCode - Universal Installation Script
-# Version: 2.0.5
+# Version: 2.1.0
 # Supports: macOS, Linux (Fedora, RHEL, CentOS, Debian, Ubuntu)
 #
 
@@ -30,7 +30,7 @@ cat << 'EOF'
   \____/|_|_|\__,_|_| |_| |_|\__,_|\____\___/ \__,_|\___|
 
 EOF
-echo -e "${NC}${CYAN}${BOLD}Universal Installation Script - Version 2.0.5${NC}"
+echo -e "${NC}${CYAN}${BOLD}Universal Installation Script - Version 2.1.0${NC}"
 echo ""
 
 # Detect OS and architecture

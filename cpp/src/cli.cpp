@@ -55,7 +55,7 @@ bool CLI::parseArgs(int argc, char* argv[]) {
             printHelp();
             return false;
         } else if (arg == "-v" || arg == "--version") {
-            std::cout << "ollamaCode version 2.0.5 (C++)" << std::endl;
+            std::cout << "ollamaCode version 2.1.0 (C++)" << std::endl;
             return false;
         } else if (arg == "-m" || arg == "--model") {
             if (i + 1 < argc) {
@@ -97,7 +97,7 @@ void CLI::printBanner() {
 
 )" << utils::terminal::RESET;
 
-    std::cout << utils::terminal::BLUE << "Interactive CLI for Ollama - Version 2.0.5 (C++)" << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::BLUE << "Interactive CLI for Ollama - Version 2.1.0 (C++)" << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::YELLOW << "Type '/help' for commands, '/exit' to quit" << utils::terminal::RESET << "\n\n";
 }
 
@@ -154,7 +154,7 @@ MCP SERVERS:
     Configure MCP servers in ~/.config/ollamacode/mcp_servers.json
     See docs/MCP_SETUP.md for configuration examples
 
-WHAT'S NEW in v2.0.5:
+WHAT'S NEW in v2.1.0:
     - Fixed slash menu positioning when near terminal bottom
 
 )";
