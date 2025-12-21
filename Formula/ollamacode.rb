@@ -1,7 +1,7 @@
 class Ollamacode < Formula
   desc "Local AI coding assistant powered by Ollama - Claude Code experience, zero cloud"
   homepage "https://github.com/juergengp/ollamaCode"
-  version "2.0.5"
+  version "2.1.0"
   license "MIT"
 
   on_macos do
