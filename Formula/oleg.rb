@@ -7,7 +7,7 @@ class Oleg < Formula
   on_macos do
     if Hardware::CPU.arm?
       url "https://github.com/juergengp/OlEg/raw/main/bin/oleg-arm64"
-      sha256 "0ee2c07aa213b6f32d215f3ae5c860e8314cb758fafc1835871361500a291ab2"
+      sha256 "4012c3cbee14a1651ee2024d74ad4a30868cf044f9f9895a442ee54304760d85"
     else
       url "https://github.com/juergengp/OlEg/raw/main/bin/oleg-x86_64"
       sha256 "877afacaf5880c47b9283bbf8c8f4ac3cb81b5594f76f02dad2e04d15da6526d"
