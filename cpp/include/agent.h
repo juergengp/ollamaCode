@@ -13,7 +13,10 @@ enum class AgentType {
     Explorer,   // Read-only exploration
     Coder,      // Code modification
     Runner,     // Command execution
-    Planner     // Planning without execution
+    Planner,    // Planning without execution
+    Searcher,   // Web search and research
+    Database,   // Database queries and analysis
+    Learner     // RAG learning and retrieval
 };
 
 struct Agent {
@@ -71,6 +74,9 @@ private:
     static Agent getRunnerAgent();
     static Agent getPlannerAgent();
     static Agent getGeneralAgent();
+    static Agent getSearcherAgent();
+    static Agent getDatabaseAgent();
+    static Agent getLearnerAgent();
 };
 
 } // namespace ollamacode

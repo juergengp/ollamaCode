@@ -19,6 +19,25 @@ Config::Config()
     , safe_mode_(true)
     , auto_approve_(false)
     , mcp_enabled_(false)
+    // Search settings
+    , search_provider_("duckduckgo")
+    , search_api_key_("")
+    // Database settings
+    , db_type_("sqlite")
+    , db_connection_("")
+    , db_allow_write_(false)
+    // Vector database settings
+    , vector_backend_("sqlite")
+    , vector_path_("")  // Will be set to default in initialize()
+    , vector_url_("")
+    // Embedding settings
+    , embedding_provider_("ollama")
+    , embedding_model_("nomic-embed-text")
+    // RAG settings
+    , rag_enabled_(true)
+    , rag_auto_context_(true)
+    , rag_similarity_threshold_(0.7)
+    , rag_max_chunks_(5)
 {
     // Default allowed commands
     allowed_commands_ = {
@@ -48,6 +67,17 @@ bool Config::initialize(const std::string& config_path) {
             std::cerr << "Failed to create config directory: " << config_dir << std::endl;
             return false;
         }
+    }
+
+    // Create vectors directory if it doesn't exist
+    std::string vectors_dir = getDefaultVectorPath();
+    if (!utils::dirExists(vectors_dir)) {
+        utils::createDir(vectors_dir);
+    }
+
+    // Set default vector path if not set
+    if (vector_path_.empty()) {
+        vector_path_ = vectors_dir;
     }
 
     // Initialize database
@@ -153,6 +183,25 @@ bool Config::load() {
         else if (key == "safe_mode") safe_mode_ = (value == "true" || value == "1");
         else if (key == "auto_approve") auto_approve_ = (value == "true" || value == "1");
         else if (key == "mcp_enabled") mcp_enabled_ = (value == "true" || value == "1");
+        // Search settings
+        else if (key == "search_provider") search_provider_ = value;
+        else if (key == "search_api_key") search_api_key_ = value;
+        // Database settings
+        else if (key == "db_type") db_type_ = value;
+        else if (key == "db_connection") db_connection_ = value;
+        else if (key == "db_allow_write") db_allow_write_ = (value == "true" || value == "1");
+        // Vector database settings
+        else if (key == "vector_backend") vector_backend_ = value;
+        else if (key == "vector_path") vector_path_ = value;
+        else if (key == "vector_url") vector_url_ = value;
+        // Embedding settings
+        else if (key == "embedding_provider") embedding_provider_ = value;
+        else if (key == "embedding_model") embedding_model_ = value;
+        // RAG settings
+        else if (key == "rag_enabled") rag_enabled_ = (value == "true" || value == "1");
+        else if (key == "rag_auto_context") rag_auto_context_ = (value == "true" || value == "1");
+        else if (key == "rag_similarity_threshold") rag_similarity_threshold_ = std::stod(value);
+        else if (key == "rag_max_chunks") rag_max_chunks_ = std::stoi(value);
     }
 
     sqlite3_finalize(stmt);
@@ -188,6 +237,30 @@ bool Config::save() {
     saveValue("safe_mode", safe_mode_ ? "true" : "false");
     saveValue("auto_approve", auto_approve_ ? "true" : "false");
     saveValue("mcp_enabled", mcp_enabled_ ? "true" : "false");
+
+    // Search settings
+    saveValue("search_provider", search_provider_);
+    saveValue("search_api_key", search_api_key_);
+
+    // Database settings
+    saveValue("db_type", db_type_);
+    saveValue("db_connection", db_connection_);
+    saveValue("db_allow_write", db_allow_write_ ? "true" : "false");
+
+    // Vector database settings
+    saveValue("vector_backend", vector_backend_);
+    saveValue("vector_path", vector_path_);
+    saveValue("vector_url", vector_url_);
+
+    // Embedding settings
+    saveValue("embedding_provider", embedding_provider_);
+    saveValue("embedding_model", embedding_model_);
+
+    // RAG settings
+    saveValue("rag_enabled", rag_enabled_ ? "true" : "false");
+    saveValue("rag_auto_context", rag_auto_context_ ? "true" : "false");
+    saveValue("rag_similarity_threshold", std::to_string(rag_similarity_threshold_));
+    saveValue("rag_max_chunks", std::to_string(rag_max_chunks_));
 
     return true;
 }
@@ -270,6 +343,81 @@ void Config::setAutoApprove(bool enabled) {
 
 void Config::setMCPEnabled(bool enabled) {
     mcp_enabled_ = enabled;
+    save();
+}
+
+// Search setters
+void Config::setSearchProvider(const std::string& provider) {
+    search_provider_ = provider;
+    save();
+}
+
+void Config::setSearchApiKey(const std::string& key) {
+    search_api_key_ = key;
+    save();
+}
+
+// Database setters
+void Config::setDBType(const std::string& type) {
+    db_type_ = type;
+    save();
+}
+
+void Config::setDBConnection(const std::string& conn) {
+    db_connection_ = conn;
+    save();
+}
+
+void Config::setDBAllowWrite(bool allow) {
+    db_allow_write_ = allow;
+    save();
+}
+
+// Vector database setters
+void Config::setVectorBackend(const std::string& backend) {
+    vector_backend_ = backend;
+    save();
+}
+
+void Config::setVectorPath(const std::string& path) {
+    vector_path_ = path;
+    save();
+}
+
+void Config::setVectorUrl(const std::string& url) {
+    vector_url_ = url;
+    save();
+}
+
+// Embedding setters
+void Config::setEmbeddingProvider(const std::string& provider) {
+    embedding_provider_ = provider;
+    save();
+}
+
+void Config::setEmbeddingModel(const std::string& model) {
+    embedding_model_ = model;
+    save();
+}
+
+// RAG setters
+void Config::setRAGEnabled(bool enabled) {
+    rag_enabled_ = enabled;
+    save();
+}
+
+void Config::setRAGAutoContext(bool enabled) {
+    rag_auto_context_ = enabled;
+    save();
+}
+
+void Config::setRAGSimilarityThreshold(double threshold) {
+    rag_similarity_threshold_ = threshold;
+    save();
+}
+
+void Config::setRAGMaxChunks(int chunks) {
+    rag_max_chunks_ = chunks;
     save();
 }
 
@@ -398,6 +546,10 @@ std::string Config::getHistoryPath() {
 
 std::string Config::getMCPConfigPath() {
     return utils::joinPath(getConfigDir(), "mcp_servers.json");
+}
+
+std::string Config::getDefaultVectorPath() {
+    return utils::joinPath(getConfigDir(), "vectors");
 }
 
 } // namespace ollamacode

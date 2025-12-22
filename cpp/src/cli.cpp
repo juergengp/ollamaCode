@@ -55,7 +55,7 @@ bool CLI::parseArgs(int argc, char* argv[]) {
             printHelp();
             return false;
         } else if (arg == "-v" || arg == "--version") {
-            std::cout << "ollamaCode version 2.1.0 (C++)" << std::endl;
+            std::cout << "ollamaCode version 2.2.0 (C++)" << std::endl;
             return false;
         } else if (arg == "-m" || arg == "--model") {
             if (i + 1 < argc) {
@@ -97,7 +97,7 @@ void CLI::printBanner() {
 
 )" << utils::terminal::RESET;
 
-    std::cout << utils::terminal::BLUE << "Interactive CLI for Ollama - Version 2.1.0 (C++)" << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::BLUE << "Interactive CLI for Ollama - Version 2.2.0 (C++)" << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::YELLOW << "Type '/help' for commands, '/exit' to quit" << utils::terminal::RESET << "\n\n";
 }
 
@@ -142,6 +142,9 @@ AGENT COMMANDS:
     /run                    Switch to runner agent (commands)
     /plan                   Switch to planner agent (planning)
     /general                Switch to general agent (all tools)
+    /search, /web           Switch to searcher agent (web search)
+    /db, /database          Switch to database agent (SQL queries)
+    /learn, /memory, /rag   Switch to learner agent (RAG knowledge)
 
 EXAMPLES:
     ollamacode                              # Start interactive mode
@@ -154,8 +157,12 @@ MCP SERVERS:
     Configure MCP servers in ~/.config/ollamacode/mcp_servers.json
     See docs/MCP_SETUP.md for configuration examples
 
-WHAT'S NEW in v2.1.0:
-    - Fixed slash menu positioning when near terminal bottom
+WHAT'S NEW in v2.2.0:
+    - New Searcher agent with web search (DuckDuckGo) and web spider
+    - New Database agent supporting SQLite, PostgreSQL, MySQL
+    - New Learner agent with RAG (vector database knowledge)
+    - Embedding support via Ollama or local hash-based
+    - Vector database backends: SQLite, ChromaDB, FAISS
 
 )";
 }
@@ -242,8 +249,14 @@ void CLI::handleAgentCommand(const std::string& cmd) {
         switchAgent(AgentType::Planner);
     } else if (cmd == "general") {
         switchAgent(AgentType::General);
+    } else if (cmd == "search" || cmd == "web") {
+        switchAgent(AgentType::Searcher);
+    } else if (cmd == "db" || cmd == "database") {
+        switchAgent(AgentType::Database);
+    } else if (cmd == "learn" || cmd == "memory" || cmd == "rag") {
+        switchAgent(AgentType::Learner);
     } else {
-        utils::terminal::printError("Unknown agent command. Try: /agent, /explore, /code, /run, /plan, /general");
+        utils::terminal::printError("Unknown agent command. Try: /agent, /explore, /code, /run, /plan, /general, /search, /db, /learn");
     }
 }
 
@@ -1085,7 +1098,9 @@ void CLI::handleCommand(const std::string& input) {
     } else if (utils::startsWith(cmd, "mcp")) {
         handleMCPCommand(cmd);
     } else if (utils::startsWith(cmd, "agent") || cmd == "explore" || cmd == "code" ||
-               cmd == "run" || cmd == "plan" || cmd == "general") {
+               cmd == "run" || cmd == "plan" || cmd == "general" ||
+               cmd == "search" || cmd == "web" || cmd == "db" || cmd == "database" ||
+               cmd == "learn" || cmd == "memory" || cmd == "rag") {
         handleAgentCommand(cmd);
     } else {
         utils::terminal::printError("Unknown command. Type '/help' for available commands.");

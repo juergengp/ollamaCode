@@ -1,6 +1,9 @@
 #include "tool_executor.h"
 #include "config.h"
 #include "mcp_client.h"
+#include "search_client.h"
+#include "db_client.h"
+#include "rag_engine.h"
 #include "utils.h"
 #include <iostream>
 #include <fstream>
@@ -39,11 +42,26 @@ ToolExecutor::ToolExecutor(Config& config)
     : config_(config)
     , confirm_callback_(nullptr)
     , mcp_client_(nullptr)
+    , search_client_(nullptr)
+    , db_client_(nullptr)
+    , rag_engine_(nullptr)
 {
 }
 
 void ToolExecutor::setMCPClient(MCPClient* client) {
     mcp_client_ = client;
+}
+
+void ToolExecutor::setSearchClient(SearchClient* client) {
+    search_client_ = client;
+}
+
+void ToolExecutor::setDBClient(DBClient* client) {
+    db_client_ = client;
+}
+
+void ToolExecutor::setRAGEngine(RAGEngine* engine) {
+    rag_engine_ = engine;
 }
 
 bool ToolExecutor::isMCPTool(const std::string& tool_name) const {
@@ -644,6 +662,644 @@ ToolResult ToolExecutor::executeMCPTool(const ToolCall& tool_call) {
     return result;
 }
 
+// ============================================================================
+// Search Tools Implementation
+// ============================================================================
+
+ToolResult ToolExecutor::executeWebSearch(const ToolCall& tool_call) {
+    ToolResult result;
+
+    if (!search_client_) {
+        result.success = false;
+        result.error = "Search client not initialized";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    auto query_it = tool_call.parameters.find("query");
+    if (query_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'query' parameter";
+        return result;
+    }
+
+    std::string query = query_it->second;
+    int max_results = 10;
+
+    auto max_it = tool_call.parameters.find("max_results");
+    if (max_it != tool_call.parameters.end()) {
+        try {
+            max_results = std::stoi(max_it->second);
+        } catch (...) {}
+    }
+
+    utils::terminal::printInfo("[Tool: WebSearch]");
+    std::cout << utils::terminal::CYAN << "Query: " << query << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Max results: " << max_results << utils::terminal::RESET << "\n\n";
+
+    // Confirmation
+    if (!requestConfirmation("WebSearch", "Search the web?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Searching...");
+    auto search_results = search_client_->search(query, max_results);
+
+    std::stringstream ss;
+    ss << "Search Results for: " << query << "\n\n";
+
+    for (size_t i = 0; i < search_results.size(); i++) {
+        const auto& res = search_results[i];
+        ss << "[" << (i + 1) << "] " << res.title << "\n";
+        ss << "    URL: " << res.url << "\n";
+        ss << "    " << res.snippet << "\n\n";
+    }
+
+    if (search_results.empty()) {
+        ss << "No results found.\n";
+    }
+
+    result.output = ss.str();
+    result.success = true;
+    result.exit_code = 0;
+
+    utils::terminal::printSuccess("Search complete");
+    std::cout << "\n=== Results ===\n" << result.output << "===============\n\n";
+
+    return result;
+}
+
+ToolResult ToolExecutor::executeWebFetch(const ToolCall& tool_call) {
+    ToolResult result;
+
+    if (!search_client_) {
+        result.success = false;
+        result.error = "Search client not initialized";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    auto url_it = tool_call.parameters.find("url");
+    if (url_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'url' parameter";
+        return result;
+    }
+
+    std::string url = url_it->second;
+    bool extract_links = false;
+
+    auto links_it = tool_call.parameters.find("extract_links");
+    if (links_it != tool_call.parameters.end()) {
+        extract_links = (links_it->second == "true" || links_it->second == "1");
+    }
+
+    utils::terminal::printInfo("[Tool: WebFetch]");
+    std::cout << utils::terminal::CYAN << "URL: " << url << utils::terminal::RESET << "\n\n";
+
+    // Confirmation
+    if (!requestConfirmation("WebFetch", "Fetch web page?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Fetching...");
+    auto page = search_client_->fetchPage(url);
+
+    if (!page.success) {
+        result.success = false;
+        result.error = "Failed to fetch page: " + page.error;
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    std::stringstream ss;
+    ss << "=== Page: " << page.title << " ===\n\n";
+    ss << page.content << "\n";
+
+    if (extract_links && !page.links.empty()) {
+        ss << "\n=== Links ===\n";
+        for (const auto& link : page.links) {
+            ss << "- " << link << "\n";
+        }
+    }
+
+    result.output = ss.str();
+    result.success = true;
+    result.exit_code = 0;
+
+    utils::terminal::printSuccess("Fetch complete");
+    std::cout << "\n=== Content ===\n";
+    // Truncate output for display
+    if (page.content.length() > 2000) {
+        std::cout << page.content.substr(0, 2000) << "\n...(truncated)\n";
+    } else {
+        std::cout << page.content << "\n";
+    }
+    std::cout << "===============\n\n";
+
+    return result;
+}
+
+// ============================================================================
+// Database Tools Implementation
+// ============================================================================
+
+ToolResult ToolExecutor::executeDBConnect(const ToolCall& tool_call) {
+    ToolResult result;
+
+    if (!db_client_) {
+        result.success = false;
+        result.error = "Database client not initialized";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    auto type_it = tool_call.parameters.find("type");
+    auto conn_it = tool_call.parameters.find("connection");
+
+    if (type_it == tool_call.parameters.end() || conn_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'type' or 'connection' parameter";
+        return result;
+    }
+
+    std::string db_type = type_it->second;
+    std::string connection = conn_it->second;
+
+    utils::terminal::printInfo("[Tool: DBConnect]");
+    std::cout << utils::terminal::CYAN << "Type: " << db_type << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Connection: " << connection << utils::terminal::RESET << "\n\n";
+
+    // Confirmation
+    if (!requestConfirmation("DBConnect", "Connect to database?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Connecting...");
+
+    if (db_client_->connect(db_type, connection)) {
+        result.success = true;
+        result.output = "Connected to " + db_type + " database successfully";
+        utils::terminal::printSuccess(result.output);
+    } else {
+        result.success = false;
+        result.error = "Failed to connect to database";
+        utils::terminal::printError(result.error);
+    }
+
+    return result;
+}
+
+ToolResult ToolExecutor::executeDBQuery(const ToolCall& tool_call) {
+    ToolResult result;
+
+    if (!db_client_) {
+        result.success = false;
+        result.error = "Database client not initialized";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    if (!db_client_->isConnected()) {
+        result.success = false;
+        result.error = "Not connected to any database";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    auto query_it = tool_call.parameters.find("query");
+    if (query_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'query' parameter";
+        return result;
+    }
+
+    std::string query = query_it->second;
+
+    utils::terminal::printInfo("[Tool: DBQuery]");
+    std::cout << utils::terminal::CYAN << "Query: " << query << utils::terminal::RESET << "\n\n";
+
+    // Confirmation
+    if (!requestConfirmation("DBQuery", "Execute query?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Executing query...");
+    auto query_result = db_client_->query(query);
+
+    if (!query_result.success) {
+        result.success = false;
+        result.error = "Query failed: " + query_result.error;
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    // Format results as table
+    std::stringstream ss;
+    if (!query_result.columns.empty()) {
+        // Header
+        for (const auto& col : query_result.columns) {
+            ss << col << "\t";
+        }
+        ss << "\n";
+
+        // Separator
+        for (size_t i = 0; i < query_result.columns.size(); i++) {
+            ss << "--------\t";
+        }
+        ss << "\n";
+
+        // Rows
+        for (const auto& row : query_result.rows) {
+            for (const auto& col : query_result.columns) {
+                auto it = row.find(col);
+                if (it != row.end()) {
+                    ss << it->second << "\t";
+                } else {
+                    ss << "(null)\t";
+                }
+            }
+            ss << "\n";
+        }
+
+        ss << "\n" << query_result.rows.size() << " row(s) returned\n";
+    } else {
+        ss << "Query executed successfully. Rows affected: " << query_result.affected_rows << "\n";
+    }
+
+    result.output = ss.str();
+    result.success = true;
+    result.exit_code = 0;
+
+    utils::terminal::printSuccess("Query complete");
+    std::cout << "\n=== Results ===\n" << result.output << "===============\n\n";
+
+    return result;
+}
+
+ToolResult ToolExecutor::executeDBExecute(const ToolCall& tool_call) {
+    ToolResult result;
+
+    if (!db_client_) {
+        result.success = false;
+        result.error = "Database client not initialized";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    if (!db_client_->isConnected()) {
+        result.success = false;
+        result.error = "Not connected to any database";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    // Check if writes are allowed
+    if (!config_.getDBAllowWrite()) {
+        result.success = false;
+        result.error = "Database writes are disabled in settings";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    auto query_it = tool_call.parameters.find("query");
+    if (query_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'query' parameter";
+        return result;
+    }
+
+    std::string query = query_it->second;
+
+    utils::terminal::printInfo("[Tool: DBExecute]");
+    std::cout << utils::terminal::YELLOW << "WARNING: This will modify the database!" << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Query: " << query << utils::terminal::RESET << "\n\n";
+
+    // Always require confirmation for write operations
+    if (!requestConfirmation("DBExecute", "Execute WRITE query?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Executing...");
+    auto query_result = db_client_->execute(query);
+
+    if (!query_result.success) {
+        result.success = false;
+        result.error = "Execute failed: " + query_result.error;
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    result.output = "Query executed. Rows affected: " + std::to_string(query_result.affected_rows);
+    result.success = true;
+    result.exit_code = 0;
+
+    utils::terminal::printSuccess(result.output);
+
+    return result;
+}
+
+ToolResult ToolExecutor::executeDBSchema(const ToolCall& tool_call) {
+    ToolResult result;
+
+    if (!db_client_) {
+        result.success = false;
+        result.error = "Database client not initialized";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    if (!db_client_->isConnected()) {
+        result.success = false;
+        result.error = "Not connected to any database";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    std::string table;
+    auto table_it = tool_call.parameters.find("table");
+    if (table_it != tool_call.parameters.end()) {
+        table = table_it->second;
+    }
+
+    utils::terminal::printInfo("[Tool: DBSchema]");
+    if (!table.empty()) {
+        std::cout << utils::terminal::CYAN << "Table: " << table << utils::terminal::RESET << "\n\n";
+    }
+
+    auto tables = db_client_->getSchema();
+
+    if (tables.empty()) {
+        result.success = false;
+        result.error = "Could not retrieve schema";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    // Format schema output
+    std::stringstream ss;
+    for (const auto& tbl : tables) {
+        // If specific table requested, only show that one
+        if (!table.empty() && tbl.name != table) continue;
+
+        ss << "Table: " << tbl.name << "\n";
+        for (const auto& col : tbl.columns) {
+            ss << "  " << col.name << " " << col.type;
+            if (col.primary_key) ss << " PRIMARY KEY";
+            if (col.nullable) ss << " NULL";
+            else ss << " NOT NULL";
+            if (!col.default_value.empty()) ss << " DEFAULT " << col.default_value;
+            ss << "\n";
+        }
+        ss << "\n";
+    }
+
+    result.output = ss.str();
+    result.success = true;
+    result.exit_code = 0;
+
+    utils::terminal::printSuccess("Schema retrieved");
+    std::cout << "\n=== Schema ===\n" << result.output << "==============\n\n";
+
+    return result;
+}
+
+// ============================================================================
+// RAG Tools Implementation
+// ============================================================================
+
+ToolResult ToolExecutor::executeLearn(const ToolCall& tool_call) {
+    ToolResult result;
+
+    if (!rag_engine_) {
+        result.success = false;
+        result.error = "RAG engine not initialized";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    if (!rag_engine_->isInitialized()) {
+        result.success = false;
+        result.error = "RAG engine not initialized - check vector database settings";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    auto source_it = tool_call.parameters.find("source");
+    if (source_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'source' parameter";
+        return result;
+    }
+
+    std::string source = source_it->second;
+    std::string pattern = "*";
+    std::string content;
+
+    auto pattern_it = tool_call.parameters.find("pattern");
+    if (pattern_it != tool_call.parameters.end()) {
+        pattern = pattern_it->second;
+    }
+
+    auto content_it = tool_call.parameters.find("content");
+    if (content_it != tool_call.parameters.end()) {
+        content = content_it->second;
+    }
+
+    utils::terminal::printInfo("[Tool: Learn]");
+    std::cout << utils::terminal::CYAN << "Source: " << source << utils::terminal::RESET << "\n";
+    if (!pattern.empty() && pattern != "*") {
+        std::cout << utils::terminal::CYAN << "Pattern: " << pattern << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+
+    // Confirmation
+    if (!requestConfirmation("Learn", "Index content into vector database?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Learning...");
+
+    LearnResult learn_result;
+
+    if (source == "text" && !content.empty()) {
+        learn_result = rag_engine_->learnText(content, "text_input");
+    } else if (source.find("http://") == 0 || source.find("https://") == 0) {
+        learn_result = rag_engine_->learnUrl(source);
+    } else if (utils::dirExists(source)) {
+        learn_result = rag_engine_->learnDirectory(source, pattern);
+    } else if (utils::fileExists(source)) {
+        learn_result = rag_engine_->learnFile(source);
+    } else {
+        result.success = false;
+        result.error = "Source not found: " + source;
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    if (!learn_result.success) {
+        result.success = false;
+        result.error = "Learn failed: " + learn_result.error;
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    std::stringstream ss;
+    ss << "Learned from: " << source << "\n";
+    ss << "Documents indexed: " << learn_result.documents_added << "\n";
+    ss << "Chunks created: " << learn_result.chunks_created << "\n";
+
+    result.output = ss.str();
+    result.success = true;
+    result.exit_code = 0;
+
+    utils::terminal::printSuccess("Learning complete");
+    std::cout << "\n" << result.output << "\n";
+
+    return result;
+}
+
+ToolResult ToolExecutor::executeRemember(const ToolCall& tool_call) {
+    ToolResult result;
+
+    if (!rag_engine_) {
+        result.success = false;
+        result.error = "RAG engine not initialized";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    if (!rag_engine_->isInitialized()) {
+        result.success = false;
+        result.error = "RAG engine not initialized - check vector database settings";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    auto query_it = tool_call.parameters.find("query");
+    if (query_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'query' parameter";
+        return result;
+    }
+
+    std::string query = query_it->second;
+    int max_results = 5;
+
+    auto max_it = tool_call.parameters.find("max_results");
+    if (max_it != tool_call.parameters.end()) {
+        try {
+            max_results = std::stoi(max_it->second);
+        } catch (...) {}
+    }
+
+    utils::terminal::printInfo("[Tool: Remember]");
+    std::cout << utils::terminal::CYAN << "Query: " << query << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Max results: " << max_results << utils::terminal::RESET << "\n\n";
+
+    utils::terminal::printInfo("Searching memory...");
+
+    auto context = rag_engine_->retrieve(query, max_results);
+
+    if (context.results.empty()) {
+        result.output = "No relevant context found in memory.";
+        result.success = true;
+        result.exit_code = 0;
+        utils::terminal::printInfo(result.output);
+        return result;
+    }
+
+    result.output = context.formatted_context;
+    result.success = true;
+    result.exit_code = 0;
+
+    utils::terminal::printSuccess("Found " + std::to_string(context.results.size()) + " relevant chunks");
+    std::cout << "\n" << result.output << "\n";
+
+    return result;
+}
+
+ToolResult ToolExecutor::executeForget(const ToolCall& tool_call) {
+    ToolResult result;
+
+    if (!rag_engine_) {
+        result.success = false;
+        result.error = "RAG engine not initialized";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    if (!rag_engine_->isInitialized()) {
+        result.success = false;
+        result.error = "RAG engine not initialized - check vector database settings";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    auto source_it = tool_call.parameters.find("source");
+    if (source_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'source' parameter";
+        return result;
+    }
+
+    std::string source = source_it->second;
+
+    utils::terminal::printInfo("[Tool: Forget]");
+    std::cout << utils::terminal::CYAN << "Source: " << source << utils::terminal::RESET << "\n\n";
+
+    // Confirmation
+    if (!requestConfirmation("Forget", "Remove content from vector database?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Forgetting...");
+
+    bool success;
+    if (source == "*" || source == "all") {
+        success = rag_engine_->forgetAll();
+        result.output = "All content removed from vector database.";
+    } else {
+        success = rag_engine_->forget(source);
+        result.output = "Removed content from: " + source;
+    }
+
+    if (!success) {
+        result.success = false;
+        result.error = "Failed to remove content";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    result.success = true;
+    result.exit_code = 0;
+
+    utils::terminal::printSuccess(result.output);
+
+    return result;
+}
+
 ToolResult ToolExecutor::execute(const ToolCall& tool_call) {
     // Check if this is an MCP tool
     if (isMCPTool(tool_call.name)) {
@@ -662,7 +1318,32 @@ ToolResult ToolExecutor::execute(const ToolCall& tool_call) {
         return executeGlob(tool_call);
     } else if (tool_call.name == "Grep") {
         return executeGrep(tool_call);
-    } else {
+    }
+    // Search tools
+    else if (tool_call.name == "WebSearch") {
+        return executeWebSearch(tool_call);
+    } else if (tool_call.name == "WebFetch") {
+        return executeWebFetch(tool_call);
+    }
+    // Database tools
+    else if (tool_call.name == "DBConnect") {
+        return executeDBConnect(tool_call);
+    } else if (tool_call.name == "DBQuery") {
+        return executeDBQuery(tool_call);
+    } else if (tool_call.name == "DBExecute") {
+        return executeDBExecute(tool_call);
+    } else if (tool_call.name == "DBSchema") {
+        return executeDBSchema(tool_call);
+    }
+    // RAG tools
+    else if (tool_call.name == "Learn") {
+        return executeLearn(tool_call);
+    } else if (tool_call.name == "Remember") {
+        return executeRemember(tool_call);
+    } else if (tool_call.name == "Forget") {
+        return executeForget(tool_call);
+    }
+    else {
         ToolResult result;
         result.success = false;
         result.error = "Unknown tool: " + tool_call.name;

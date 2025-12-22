@@ -42,6 +42,9 @@ private:
     bool containsCodePatterns(const std::string& input);
     bool containsRunPatterns(const std::string& input);
     bool containsPlanPatterns(const std::string& input);
+    bool containsSearchPatterns(const std::string& input);
+    bool containsDatabasePatterns(const std::string& input);
+    bool containsLearnerPatterns(const std::string& input);
 
     // Menu helpers
     std::string readSingleKey();

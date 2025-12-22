@@ -88,6 +88,61 @@ bool TaskSuggester::containsPlanPatterns(const std::string& input) {
     return false;
 }
 
+bool TaskSuggester::containsSearchPatterns(const std::string& input) {
+    std::string lower = input;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+    std::vector<std::string> patterns = {
+        "search the web", "google", "look up online", "web search",
+        "fetch url", "download page", "scrape", "crawl",
+        "find online", "search internet", "research online",
+        "duckduckgo", "brave search", "http://", "https://"
+    };
+
+    for (const auto& pattern : patterns) {
+        if (lower.find(pattern) != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool TaskSuggester::containsDatabasePatterns(const std::string& input) {
+    std::string lower = input;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+    std::vector<std::string> patterns = {
+        "database", "sql", "query", "select from", "insert into",
+        "table", "schema", "postgresql", "postgres", "mysql",
+        "sqlite", "db connect", "db query", "rows", "columns"
+    };
+
+    for (const auto& pattern : patterns) {
+        if (lower.find(pattern) != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool TaskSuggester::containsLearnerPatterns(const std::string& input) {
+    std::string lower = input;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+    std::vector<std::string> patterns = {
+        "learn", "remember", "memorize", "index", "vector",
+        "rag", "embed", "knowledge base", "context", "forget",
+        "teach", "train on", "study", "recall", "memory"
+    };
+
+    for (const auto& pattern : patterns) {
+        if (lower.find(pattern) != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
+}
+
 std::vector<TaskSuggestion> TaskSuggester::analyzeTask(const std::string& userInput) {
     std::vector<TaskSuggestion> suggestions;
 
@@ -96,8 +151,41 @@ std::vector<TaskSuggestion> TaskSuggester::analyzeTask(const std::string& userIn
     bool hasCode = containsCodePatterns(userInput);
     bool hasRun = containsRunPatterns(userInput);
     bool hasPlan = containsPlanPatterns(userInput);
+    bool hasSearch = containsSearchPatterns(userInput);
+    bool hasDatabase = containsDatabasePatterns(userInput);
+    bool hasLearner = containsLearnerPatterns(userInput);
 
     int priority = 1;
+
+    // Web search tasks
+    if (hasSearch) {
+        TaskSuggestion searchSuggestion;
+        searchSuggestion.agentType = AgentType::Searcher;
+        searchSuggestion.taskDescription = userInput;
+        searchSuggestion.reasoning = "Search the web and gather information";
+        searchSuggestion.priority = priority++;
+        suggestions.push_back(searchSuggestion);
+    }
+
+    // Database tasks
+    if (hasDatabase) {
+        TaskSuggestion dbSuggestion;
+        dbSuggestion.agentType = AgentType::Database;
+        dbSuggestion.taskDescription = userInput;
+        dbSuggestion.reasoning = "Query and analyze database";
+        dbSuggestion.priority = priority++;
+        suggestions.push_back(dbSuggestion);
+    }
+
+    // Learning/RAG tasks
+    if (hasLearner) {
+        TaskSuggestion learnSuggestion;
+        learnSuggestion.agentType = AgentType::Learner;
+        learnSuggestion.taskDescription = userInput;
+        learnSuggestion.reasoning = "Learn from documents or retrieve knowledge";
+        learnSuggestion.priority = priority++;
+        suggestions.push_back(learnSuggestion);
+    }
 
     // Complex tasks might need planning first
     if (hasPlan || (hasCode && hasExplore)) {

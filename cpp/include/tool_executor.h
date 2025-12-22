@@ -10,6 +10,9 @@ namespace ollamacode {
 
 class Config; // Forward declaration
 class MCPClient; // Forward declaration
+class SearchClient; // Forward declaration
+class DBClient; // Forward declaration
+class RAGEngine; // Forward declaration
 
 struct ToolResult {
     bool success;
@@ -36,10 +39,18 @@ public:
     void setMCPClient(MCPClient* client);
     bool isMCPTool(const std::string& tool_name) const;
 
+    // Search, Database, and RAG integration
+    void setSearchClient(SearchClient* client);
+    void setDBClient(DBClient* client);
+    void setRAGEngine(RAGEngine* engine);
+
 private:
     Config& config_;
     ConfirmCallback confirm_callback_;
     MCPClient* mcp_client_;
+    SearchClient* search_client_;
+    DBClient* db_client_;
+    RAGEngine* rag_engine_;
 
     // Tool implementations
     ToolResult executeBash(const ToolCall& tool_call);
@@ -49,6 +60,21 @@ private:
     ToolResult executeGlob(const ToolCall& tool_call);
     ToolResult executeGrep(const ToolCall& tool_call);
     ToolResult executeMCPTool(const ToolCall& tool_call);
+
+    // Search tools
+    ToolResult executeWebSearch(const ToolCall& tool_call);
+    ToolResult executeWebFetch(const ToolCall& tool_call);
+
+    // Database tools
+    ToolResult executeDBConnect(const ToolCall& tool_call);
+    ToolResult executeDBQuery(const ToolCall& tool_call);
+    ToolResult executeDBExecute(const ToolCall& tool_call);
+    ToolResult executeDBSchema(const ToolCall& tool_call);
+
+    // RAG tools
+    ToolResult executeLearn(const ToolCall& tool_call);
+    ToolResult executeRemember(const ToolCall& tool_call);
+    ToolResult executeForget(const ToolCall& tool_call);
 
     // Helpers
     bool isCommandSafe(const std::string& command);

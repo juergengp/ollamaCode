@@ -37,6 +37,30 @@ public:
     bool getAutoApprove() const { return auto_approve_; }
     bool getMCPEnabled() const { return mcp_enabled_; }
 
+    // Search settings
+    std::string getSearchProvider() const { return search_provider_; }
+    std::string getSearchApiKey() const { return search_api_key_; }
+
+    // Database settings
+    std::string getDBType() const { return db_type_; }
+    std::string getDBConnection() const { return db_connection_; }
+    bool getDBAllowWrite() const { return db_allow_write_; }
+
+    // Vector database settings
+    std::string getVectorBackend() const { return vector_backend_; }
+    std::string getVectorPath() const { return vector_path_; }
+    std::string getVectorUrl() const { return vector_url_; }
+
+    // Embedding settings
+    std::string getEmbeddingProvider() const { return embedding_provider_; }
+    std::string getEmbeddingModel() const { return embedding_model_; }
+
+    // RAG settings
+    bool getRAGEnabled() const { return rag_enabled_; }
+    bool getRAGAutoContext() const { return rag_auto_context_; }
+    double getRAGSimilarityThreshold() const { return rag_similarity_threshold_; }
+    int getRAGMaxChunks() const { return rag_max_chunks_; }
+
     // Setters
     void setModel(const std::string& model);
     void setOllamaHost(const std::string& host);
@@ -45,6 +69,30 @@ public:
     void setSafeMode(bool enabled);
     void setAutoApprove(bool enabled);
     void setMCPEnabled(bool enabled);
+
+    // Search setters
+    void setSearchProvider(const std::string& provider);
+    void setSearchApiKey(const std::string& key);
+
+    // Database setters
+    void setDBType(const std::string& type);
+    void setDBConnection(const std::string& conn);
+    void setDBAllowWrite(bool allow);
+
+    // Vector database setters
+    void setVectorBackend(const std::string& backend);
+    void setVectorPath(const std::string& path);
+    void setVectorUrl(const std::string& url);
+
+    // Embedding setters
+    void setEmbeddingProvider(const std::string& provider);
+    void setEmbeddingModel(const std::string& model);
+
+    // RAG setters
+    void setRAGEnabled(bool enabled);
+    void setRAGAutoContext(bool enabled);
+    void setRAGSimilarityThreshold(double threshold);
+    void setRAGMaxChunks(int chunks);
 
     // Persistence
     bool save();
@@ -66,6 +114,7 @@ public:
     static std::string getConfigPath();
     static std::string getHistoryPath();
     static std::string getMCPConfigPath();
+    static std::string getDefaultVectorPath();
 
 private:
     void createDefaultConfig();
@@ -85,6 +134,30 @@ private:
     bool safe_mode_;
     bool auto_approve_;
     bool mcp_enabled_;
+
+    // Search settings
+    std::string search_provider_;
+    std::string search_api_key_;
+
+    // Database settings
+    std::string db_type_;
+    std::string db_connection_;
+    bool db_allow_write_;
+
+    // Vector database settings
+    std::string vector_backend_;
+    std::string vector_path_;
+    std::string vector_url_;
+
+    // Embedding settings
+    std::string embedding_provider_;
+    std::string embedding_model_;
+
+    // RAG settings
+    bool rag_enabled_;
+    bool rag_auto_context_;
+    double rag_similarity_threshold_;
+    int rag_max_chunks_;
 
     // Allowed commands for safe mode
     std::vector<std::string> allowed_commands_;
