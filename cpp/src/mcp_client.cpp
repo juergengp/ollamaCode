@@ -9,7 +9,7 @@
 #include <errno.h>
 #include <cstring>
 
-namespace ollamacode {
+namespace oleg {
 
 // ============================================================================
 // MCPServerConnection Implementation
@@ -251,7 +251,7 @@ json MCPServerConnection::initialize() {
             {"sampling", json::object()}
         }},
         {"clientInfo", {
-            {"name", "ollamaCode"},
+            {"name", "OlEg"},
             {"version", "2.0.1"}
         }}
     };
@@ -716,4 +716,4 @@ void MCPClient::notifyStatus(const std::string& server, const std::string& statu
     }
 }
 
-} // namespace ollamacode
+} // namespace oleg

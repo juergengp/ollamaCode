@@ -1,12 +1,12 @@
-#ifndef OLLAMACODE_SEARCH_CLIENT_H
-#define OLLAMACODE_SEARCH_CLIENT_H
+#ifndef OLEG_SEARCH_CLIENT_H
+#define OLEG_SEARCH_CLIENT_H
 
 #include <string>
 #include <vector>
 #include <memory>
 #include <functional>
 
-namespace ollamacode {
+namespace oleg {
 
 // Search result structure
 struct SearchResult {
@@ -136,6 +136,6 @@ private:
     SearchProvider* getProvider(const std::string& name);
 };
 
-} // namespace ollamacode
+} // namespace oleg
 
-#endif // OLLAMACODE_SEARCH_CLIENT_H
+#endif // OLEG_SEARCH_CLIENT_H

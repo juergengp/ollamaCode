@@ -1,6 +1,6 @@
 # MCP (Model Context Protocol) Setup Guide
 
-ollamaCode supports MCP (Model Context Protocol), allowing you to connect to external MCP servers and use their tools with your local Ollama models.
+OlEg supports MCP (Model Context Protocol), allowing you to connect to external MCP servers and use their tools with your local Ollama models.
 
 ## What is MCP?
 
@@ -43,7 +43,7 @@ MCP (Model Context Protocol) is an open protocol that standardizes how AI applic
 
 ## Configuration
 
-MCP servers are configured in `~/.config/ollamacode/mcp_servers.json`:
+MCP servers are configured in `~/.config/oleg/mcp_servers.json`:
 
 ```json
 {
@@ -190,7 +190,7 @@ Persistent memory for conversations:
 
 ### Enable MCP on Startup
 ```bash
-ollamacode --mcp
+oleg --mcp
 ```
 
 ### Interactive Commands
@@ -206,7 +206,7 @@ ollamacode --mcp
 ### Example Session
 
 ```
-$ ollamacode --mcp
+$ oleg --mcp
 
 Connecting to MCP servers...
   [MCP] filesystem: connecting...

@@ -1,5 +1,5 @@
-#ifndef OLLAMACODE_DB_CLIENT_H
-#define OLLAMACODE_DB_CLIENT_H
+#ifndef OLEG_DB_CLIENT_H
+#define OLEG_DB_CLIENT_H
 
 #include <string>
 #include <vector>
@@ -7,7 +7,7 @@
 #include <memory>
 #include <functional>
 
-namespace ollamacode {
+namespace oleg {
 
 // Query result row
 using DBRow = std::map<std::string, std::string>;
@@ -180,6 +180,6 @@ private:
     bool connected_;
 };
 
-} // namespace ollamacode
+} // namespace oleg
 
-#endif // OLLAMACODE_DB_CLIENT_H
+#endif // OLEG_DB_CLIENT_H

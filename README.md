@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/assets/logo.svg" alt="ollamaCode Logo" width="120">
+  <img src="docs/assets/logo.svg" alt="OlEg Logo" width="120">
 </p>
 
-<h1 align="center">ollamaCode</h1>
+<h1 align="center">OlEg</h1>
 
 <p align="center">
   <strong>Run AI coding assistants locally with Ollama - Claude Code experience, zero cloud dependency</strong>
@@ -65,12 +65,12 @@
 
 ---
 
-## What is ollamaCode?
+## What is OlEg?
 
-**ollamaCode** brings the power of AI coding assistants to your local machine. It's like having Claude Code or GitHub Copilot, but running entirely on your hardware with your choice of open-source LLMs via [Ollama](https://ollama.ai).
+**OlEg** brings the power of AI coding assistants to your local machine. It's like having Claude Code or GitHub Copilot, but running entirely on your hardware with your choice of open-source LLMs via [Ollama](https://ollama.ai).
 
 <p align="center">
-  <img src="docs/assets/screenshot_startup.png" alt="ollamaCode Startup Screen" width="700">
+  <img src="docs/assets/screenshot_startup.png" alt="OlEg Startup Screen" width="700">
 </p>
 
 ## Features
@@ -118,7 +118,7 @@ The AI assistant has access to these tools to help with your tasks:
 
 ### Specialized Agents
 
-ollamaCode includes specialized agents that focus on specific tasks with curated tool access:
+OlEg includes specialized agents that focus on specific tasks with curated tool access:
 
 ```
 ┌─────────────┬─────────────────────────────────────┬──────────────────────────────────┐
@@ -135,7 +135,7 @@ ollamaCode includes specialized agents that focus on specific tasks with curated
 └─────────────┴─────────────────────────────────────┴──────────────────────────────────┘
 ```
 
-When you enter a prompt, ollamaCode analyzes your task and suggests the most appropriate agent:
+When you enter a prompt, OlEg analyzes your task and suggests the most appropriate agent:
 
 <p align="center">
   <img src="docs/assets/screenshot_agent_selection.png" alt="Agent Selection Menu" width="700">
@@ -147,7 +147,7 @@ Connect your local Ollama models to external tools and services:
 
 ```
 ┌─────────────────┐     MCP Protocol     ┌──────────────┐
-│   ollamaCode    │ ◄──────────────────► │  MCP Servers │
+│   OlEg    │ ◄──────────────────► │  MCP Servers │
 │  (Ollama LLM)   │     (JSON-RPC)       │  - GitHub    │
 └─────────────────┘                      │  - Filesystem│
                                          │  - Database  │
@@ -185,43 +185,43 @@ ollama pull qwen3:4b        # Fast and lightweight
 ollama pull codellama       # Optimized for coding tasks
 ```
 
-### 3. Install ollamaCode
+### 3. Install OlEg
 
 ```bash
 # Option A: Download universal binary (recommended)
-curl -L https://github.com/juergengp/ollamaCode/releases/latest/download/ollamacode-macos-universal -o ollamacode
-chmod +x ollamacode
-sudo mv ollamacode /usr/local/bin/
+curl -L https://github.com/juergengp/OlEg/releases/latest/download/oleg-macos-universal -o oleg
+chmod +x oleg
+sudo mv oleg /usr/local/bin/
 
 # Option B: Build from source
-git clone https://github.com/juergengp/ollamaCode.git
-cd ollamaCode/cpp
+git clone https://github.com/juergengp/OlEg.git
+cd OlEg/cpp
 mkdir build && cd build
 cmake ..
 make
-sudo cp ollamacode /usr/local/bin/
+sudo cp oleg /usr/local/bin/
 ```
 
 ### 4. Run!
 
 ```bash
 # Interactive mode
-ollamacode
+oleg
 
 # Single prompt
-ollamacode "Explain this codebase structure"
+oleg "Explain this codebase structure"
 
 # With MCP enabled
-ollamacode --mcp
+oleg --mcp
 
 # Connect to remote Ollama instance
-ollamacode
+oleg
 /host http://192.168.1.100:11434
 ```
 
 ## macOS GUI
 
-ollamaCode also includes a **native macOS GUI application** built with SwiftUI. It provides the same powerful features as the CLI in a modern graphical interface.
+OlEg also includes a **native macOS GUI application** built with SwiftUI. It provides the same powerful features as the CLI in a modern graphical interface.
 
 ### Features
 
@@ -389,7 +389,7 @@ Found 5 open issues:
 | `/mcp tools` | List available MCP tools |
 | `/config` | Show current configuration |
 | `/clear` | Clear the screen |
-| `/exit` | Exit ollamaCode |
+| `/exit` | Exit OlEg |
 
 ### Agent Commands
 
@@ -442,7 +442,7 @@ Found 5 open issues:
 
 ### Main Configuration
 
-Settings are stored in `~/.config/ollamacode/config.db` (SQLite) and include:
+Settings are stored in `~/.config/oleg/config.db` (SQLite) and include:
 
 - Model selection
 - Temperature
@@ -478,7 +478,7 @@ db_allow_write: false (safety default)
 
 # Vector Database
 vector_backend: sqlite | chroma | faiss
-vector_path: ~/.config/ollamacode/vectors/
+vector_path: ~/.config/oleg/vectors/
 
 # Embeddings
 embedding_provider: ollama | local
@@ -493,7 +493,7 @@ rag_max_chunks: 5
 
 ### MCP Server Configuration
 
-Configure MCP servers in `~/.config/ollamacode/mcp_servers.json`:
+Configure MCP servers in `~/.config/oleg/mcp_servers.json`:
 
 ```json
 {
@@ -536,30 +536,30 @@ See [docs/MCP_SETUP.md](docs/MCP_SETUP.md) for detailed MCP configuration.
 ### Homebrew (macOS) - Recommended
 
 ```bash
-brew tap juergengp/ollamacode https://github.com/juergengp/ollamaCode
-brew install ollamacode
+brew tap juergengp/oleg https://github.com/juergengp/OlEg
+brew install oleg
 ```
 
 ### Pre-built Binary (macOS)
 
 ```bash
 # Option A: Download universal binary directly
-curl -L https://github.com/juergengp/ollamaCode/releases/latest/download/ollamacode-macos-universal -o ollamacode
-chmod +x ollamacode
-sudo mv ollamacode /usr/local/bin/
+curl -L https://github.com/juergengp/OlEg/releases/latest/download/oleg-macos-universal -o oleg
+chmod +x oleg
+sudo mv oleg /usr/local/bin/
 
 # Option B: Clone and copy from repository
-git clone https://github.com/juergengp/ollamaCode.git
-cd ollamaCode
-sudo cp bin/ollamacode-universal /usr/local/bin/ollamacode
+git clone https://github.com/juergengp/OlEg.git
+cd OlEg
+sudo cp bin/oleg-universal /usr/local/bin/oleg
 ```
 
 **Available binaries:**
 | Binary | Architecture |
 |--------|--------------|
-| `ollamacode-macos-universal` | All Macs (recommended) |
-| `ollamacode-macos-arm64` | Apple Silicon (M1/M2/M3/M4) |
-| `ollamacode-macos-x86_64` | Intel Macs |
+| `oleg-macos-universal` | All Macs (recommended) |
+| `oleg-macos-arm64` | Apple Silicon (M1/M2/M3/M4) |
+| `oleg-macos-x86_64` | Intel Macs |
 
 ### Build from Source
 
@@ -575,11 +575,11 @@ sudo cp bin/ollamacode-universal /usr/local/bin/ollamacode
 brew install cmake curl sqlite3
 
 # Build
-cd ollamaCode/cpp
+cd OlEg/cpp
 mkdir build && cd build
 cmake ..
 make
-sudo cp ollamacode /usr/local/bin/
+sudo cp oleg /usr/local/bin/
 ```
 
 **Linux (Debian/Ubuntu):**
@@ -588,11 +588,11 @@ sudo cp ollamacode /usr/local/bin/
 sudo apt install cmake build-essential libcurl4-openssl-dev libsqlite3-dev
 
 # Build
-cd ollamaCode/cpp
+cd OlEg/cpp
 mkdir build && cd build
 cmake ..
 make
-sudo cp ollamacode /usr/local/bin/
+sudo cp oleg /usr/local/bin/
 ```
 
 **Linux (Fedora/RHEL):**
@@ -601,11 +601,11 @@ sudo cp ollamacode /usr/local/bin/
 sudo dnf install cmake gcc-c++ libcurl-devel sqlite-devel
 
 # Build
-cd ollamaCode/cpp
+cd OlEg/cpp
 mkdir build && cd build
 cmake ..
 make
-sudo cp ollamacode /usr/local/bin/
+sudo cp oleg /usr/local/bin/
 ```
 
 ## Documentation
@@ -619,9 +619,9 @@ sudo cp ollamacode /usr/local/bin/
 ## Architecture
 
 ```
-ollamaCode/
+OlEg/
 ├── bin/                    # Pre-built binaries
-│   └── ollamacode         # macOS binary
+│   └── oleg         # macOS binary
 ├── cpp/                    # C++ CLI source code
 │   ├── include/           # Header files
 │   │   ├── agent.h        # Agent system
@@ -660,9 +660,9 @@ ollamaCode/
     └── mcp_servers.json
 ```
 
-## Why ollamaCode?
+## Why OlEg?
 
-| Feature | ollamaCode | Claude Code | GitHub Copilot |
+| Feature | OlEg | Claude Code | GitHub Copilot |
 |---------|------------|-------------|----------------|
 | **Privacy** | 100% Local | Cloud | Cloud |
 | **Cost** | Free | Subscription | Subscription |
@@ -699,6 +699,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 </p>
 
 <p align="center">
-  <a href="https://github.com/juergengp/ollamaCode/issues">Report Bug</a> •
-  <a href="https://github.com/juergengp/ollamaCode/issues">Request Feature</a>
+  <a href="https://github.com/juergengp/OlEg/issues">Report Bug</a> •
+  <a href="https://github.com/juergengp/OlEg/issues">Request Feature</a>
 </p>

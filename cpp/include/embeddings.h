@@ -1,12 +1,12 @@
-#ifndef OLLAMACODE_EMBEDDINGS_H
-#define OLLAMACODE_EMBEDDINGS_H
+#ifndef OLEG_EMBEDDINGS_H
+#define OLEG_EMBEDDINGS_H
 
 #include <string>
 #include <vector>
 #include <memory>
 #include <functional>
 
-namespace ollamacode {
+namespace oleg {
 
 // Embedding vector type
 using Embedding = std::vector<float>;
@@ -146,6 +146,6 @@ private:
     EmbeddingProvider* getActiveProvider();
 };
 
-} // namespace ollamacode
+} // namespace oleg
 
-#endif // OLLAMACODE_EMBEDDINGS_H
+#endif // OLEG_EMBEDDINGS_H

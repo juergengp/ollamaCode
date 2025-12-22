@@ -12,7 +12,7 @@
 #include <mysql/mysql.h>
 #endif
 
-namespace ollamacode {
+namespace oleg {
 
 // ============================================================================
 // DBConnection Implementation
@@ -730,4 +730,4 @@ std::vector<std::string> DBClient::getAvailableTypes() {
     return types;
 }
 
-} // namespace ollamacode
+} // namespace oleg

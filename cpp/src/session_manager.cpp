@@ -7,7 +7,7 @@
 #include <random>
 #include <algorithm>
 
-namespace ollamacode {
+namespace oleg {
 
 // Message implementation
 json Message::toJson() const {
@@ -938,11 +938,11 @@ bool SessionManager::generateSessionReport(const std::string& output_path) const
 }
 
 std::string SessionManager::getSessionsDir() {
-    return utils::joinPath(utils::joinPath(utils::getHomeDir(), ".config/ollamacode"), "sessions");
+    return utils::joinPath(utils::joinPath(utils::getHomeDir(), ".config/oleg"), "sessions");
 }
 
 std::string SessionManager::getSessionDbPath() {
     return utils::joinPath(getSessionsDir(), "sessions.db");
 }
 
-} // namespace ollamacode
+} // namespace oleg

@@ -1,12 +1,12 @@
-#ifndef OLLAMACODE_AGENT_H
-#define OLLAMACODE_AGENT_H
+#ifndef OLEG_AGENT_H
+#define OLEG_AGENT_H
 
 #include <string>
 #include <vector>
 #include <unordered_set>
 #include <functional>
 
-namespace ollamacode {
+namespace oleg {
 
 enum class AgentType {
     General,    // Default - all tools
@@ -79,6 +79,6 @@ private:
     static Agent getLearnerAgent();
 };
 
-} // namespace ollamacode
+} // namespace oleg
 
-#endif // OLLAMACODE_AGENT_H
+#endif // OLEG_AGENT_H

@@ -1,5 +1,5 @@
-#ifndef OLLAMACODE_CONFIG_H
-#define OLLAMACODE_CONFIG_H
+#ifndef OLEG_CONFIG_H
+#define OLEG_CONFIG_H
 
 #include <string>
 #include <vector>
@@ -7,7 +7,7 @@
 #include <memory>
 #include <sqlite3.h>
 
-namespace ollamacode {
+namespace oleg {
 
 // MCP Server configuration structure
 struct MCPServerConfig {
@@ -166,6 +166,6 @@ private:
     std::vector<MCPServerConfig> mcp_servers_;
 };
 
-} // namespace ollamacode
+} // namespace oleg
 
-#endif // OLLAMACODE_CONFIG_H
+#endif // OLEG_CONFIG_H

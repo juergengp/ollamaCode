@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <regex>
 
-namespace ollamacode {
+namespace oleg {
 
 TaskSuggester::TaskSuggester() : statusCallback_(nullptr) {}
 
@@ -563,4 +563,4 @@ ToolSelectionResult TaskSuggester::showToolSelectionMenu(
     }
 }
 
-} // namespace ollamacode
+} // namespace oleg

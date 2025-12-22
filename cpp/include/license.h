@@ -1,11 +1,11 @@
-#ifndef OLLAMACODE_LICENSE_H
-#define OLLAMACODE_LICENSE_H
+#ifndef OLEG_LICENSE_H
+#define OLEG_LICENSE_H
 
 #include <string>
 #include <vector>
 #include <cstdint>
 
-namespace ollamacode {
+namespace oleg {
 
 // License tiers
 enum class LicenseTier {
@@ -120,6 +120,6 @@ private:
     int daysUntilExpiration(const std::string& expires_at) const;
 };
 
-} // namespace ollamacode
+} // namespace oleg
 
-#endif // OLLAMACODE_LICENSE_H
+#endif // OLEG_LICENSE_H

@@ -10,7 +10,7 @@
 #include <pwd.h>
 #include <chrono>
 
-namespace ollamacode {
+namespace oleg {
 namespace utils {
 
 // String utilities
@@ -198,4 +198,4 @@ void printInfo(const std::string& text) {
 } // namespace terminal
 
 } // namespace utils
-} // namespace ollamacode
+} // namespace oleg

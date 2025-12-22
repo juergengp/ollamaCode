@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cstring>
 
-namespace ollamacode {
+namespace oleg {
 
 // Key codes
 namespace keys {
@@ -37,8 +37,8 @@ CommandMenu::CommandMenu()
         {"auto",    "Toggle auto-approve for tools",     "/auto [on|off]"},
         {"config",  "Show current configuration",        "/config"},
         {"clear",   "Clear the screen",                  "/clear"},
-        {"exit",    "Exit ollamacode",                   "/exit"},
-        {"quit",    "Exit ollamacode",                   "/quit"},
+        {"exit",    "Exit oleg",                   "/exit"},
+        {"quit",    "Exit oleg",                   "/quit"},
     };
 }
 
@@ -411,4 +411,4 @@ MenuResult CommandMenu::show(const std::string& initial_input) {
     return result;
 }
 
-} // namespace ollamacode
+} // namespace oleg

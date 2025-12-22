@@ -1,5 +1,5 @@
-#ifndef OLLAMACODE_RAG_ENGINE_H
-#define OLLAMACODE_RAG_ENGINE_H
+#ifndef OLEG_RAG_ENGINE_H
+#define OLEG_RAG_ENGINE_H
 
 #include "vector_db.h"
 #include "embeddings.h"
@@ -8,7 +8,7 @@
 #include <memory>
 #include <functional>
 
-namespace ollamacode {
+namespace oleg {
 
 // Document chunk for indexing
 struct DocumentChunk {
@@ -105,6 +105,6 @@ private:
     int estimateTokens(const std::string& text);
 };
 
-} // namespace ollamacode
+} // namespace oleg
 
-#endif // OLLAMACODE_RAG_ENGINE_H
+#endif // OLEG_RAG_ENGINE_H

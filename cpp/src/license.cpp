@@ -17,7 +17,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
-namespace ollamacode {
+namespace oleg {
 
 LicenseManager::LicenseManager()
     : db_(nullptr)
@@ -45,7 +45,7 @@ bool LicenseManager::initialize(const std::string& db_path) {
             std::cerr << "Cannot determine home directory" << std::endl;
             return false;
         }
-        db_path_ = std::string(home) + "/.config/ollamacode/config.db";
+        db_path_ = std::string(home) + "/.config/oleg/config.db";
     } else {
         db_path_ = db_path;
     }
@@ -151,8 +151,8 @@ void LicenseManager::saveLicense() {
 }
 
 // ============================================================================
-// Key Format: OLMA-TIER-HWID-EXPIRY-CHECK
-// Example: OLMA-PRO1-A1B2-2512-X9Y8
+// Key Format: OLEG-TIER-HWID-EXPIRY-CHECK
+// Example: OLEG-PRO1-A1B2-2512-X9Y8
 // ============================================================================
 
 bool LicenseManager::validateKeyFormat(const std::string& key) const {
@@ -168,7 +168,7 @@ bool LicenseManager::validateKeyFormat(const std::string& key) const {
     }
 
     // Check prefix
-    return key.substr(0, 4) == "OLMA";
+    return key.substr(0, 4) == "OLEG";
 }
 
 bool LicenseManager::validateKeyChecksum(const std::string& key) const {
@@ -397,7 +397,7 @@ bool LicenseManager::activateKey(const std::string& key) {
 
     // Validate format
     if (!validateKeyFormat(normalized)) {
-        license_info_.error_message = "Invalid key format. Expected: OLMA-XXXX-XXXX-XXXX-XXXX";
+        license_info_.error_message = "Invalid key format. Expected: OLEG-XXXX-XXXX-XXXX-XXXX";
         return false;
     }
 
@@ -673,7 +673,7 @@ void LicenseManager::showUpgradeMessage(Feature feature) const {
 }
 
 std::string LicenseManager::getUpgradeUrl() const {
-    return "https://github.com/juergengp/ollamaCode#license";
+    return "https://github.com/juergengp/OlEg#license";
 }
 
-} // namespace ollamacode
+} // namespace oleg

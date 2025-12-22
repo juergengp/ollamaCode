@@ -1,10 +1,10 @@
-#ifndef OLLAMACODE_UTILS_H
-#define OLLAMACODE_UTILS_H
+#ifndef OLEG_UTILS_H
+#define OLEG_UTILS_H
 
 #include <string>
 #include <vector>
 
-namespace ollamacode {
+namespace oleg {
 namespace utils {
 
 // String utilities
@@ -60,6 +60,6 @@ namespace terminal {
 }
 
 } // namespace utils
-} // namespace ollamacode
+} // namespace oleg
 
-#endif // OLLAMACODE_UTILS_H
+#endif // OLEG_UTILS_H

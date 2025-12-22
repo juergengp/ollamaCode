@@ -8,7 +8,7 @@
 
 using json = nlohmann::json;
 
-namespace ollamacode {
+namespace oleg {
 
 Config::Config()
     : db_(nullptr)
@@ -533,7 +533,7 @@ void Config::saveMCPServers() {
 
 // Static methods
 std::string Config::getConfigDir() {
-    return utils::joinPath(utils::getHomeDir(), ".config/ollamacode");
+    return utils::joinPath(utils::getHomeDir(), ".config/oleg");
 }
 
 std::string Config::getConfigPath() {
@@ -552,4 +552,4 @@ std::string Config::getDefaultVectorPath() {
     return utils::joinPath(getConfigDir(), "vectors");
 }
 
-} // namespace ollamacode
+} // namespace oleg

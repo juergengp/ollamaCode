@@ -1,11 +1,11 @@
-#ifndef OLLAMACODE_PROMPT_DB_H
-#define OLLAMACODE_PROMPT_DB_H
+#ifndef OLEG_PROMPT_DB_H
+#define OLEG_PROMPT_DB_H
 
 #include <string>
 #include <vector>
 #include <cstdint>
 
-namespace ollamacode {
+namespace oleg {
 
 // Forward declaration
 class LicenseManager;
@@ -161,6 +161,6 @@ private:
     bool checkPromptLimit();
 };
 
-} // namespace ollamacode
+} // namespace oleg
 
-#endif // OLLAMACODE_PROMPT_DB_H
+#endif // OLEG_PROMPT_DB_H

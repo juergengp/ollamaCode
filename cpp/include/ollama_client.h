@@ -1,5 +1,5 @@
-#ifndef OLLAMACODE_OLLAMA_CLIENT_H
-#define OLLAMACODE_OLLAMA_CLIENT_H
+#ifndef OLEG_OLLAMA_CLIENT_H
+#define OLEG_OLLAMA_CLIENT_H
 
 #include <string>
 #include <vector>
@@ -9,7 +9,7 @@
 
 using json = nlohmann::json;
 
-namespace ollamacode {
+namespace oleg {
 
 struct OllamaResponse {
     std::string response;
@@ -127,6 +127,6 @@ private:
     static size_t streamCallback(void* contents, size_t size, size_t nmemb, void* userp);
 };
 
-} // namespace ollamacode
+} // namespace oleg
 
-#endif // OLLAMACODE_OLLAMA_CLIENT_H
+#endif // OLEG_OLLAMA_CLIENT_H

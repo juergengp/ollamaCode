@@ -1,5 +1,5 @@
-#ifndef OLLAMACODE_VECTOR_DB_H
-#define OLLAMACODE_VECTOR_DB_H
+#ifndef OLEG_VECTOR_DB_H
+#define OLEG_VECTOR_DB_H
 
 #include "embeddings.h"
 #include <string>
@@ -7,7 +7,7 @@
 #include <memory>
 #include <functional>
 
-namespace ollamacode {
+namespace oleg {
 
 // Document stored in vector database
 struct VectorDocument {
@@ -230,6 +230,6 @@ private:
     std::string path_;
 };
 
-} // namespace ollamacode
+} // namespace oleg
 
-#endif // OLLAMACODE_VECTOR_DB_H
+#endif // OLEG_VECTOR_DB_H

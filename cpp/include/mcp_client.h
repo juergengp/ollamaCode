@@ -1,5 +1,5 @@
-#ifndef OLLAMACODE_MCP_CLIENT_H
-#define OLLAMACODE_MCP_CLIENT_H
+#ifndef OLEG_MCP_CLIENT_H
+#define OLEG_MCP_CLIENT_H
 
 #include <string>
 #include <vector>
@@ -11,7 +11,7 @@
 
 using json = nlohmann::json;
 
-namespace ollamacode {
+namespace oleg {
 
 // MCP Tool definition
 struct MCPTool {
@@ -145,6 +145,6 @@ private:
     void notifyStatus(const std::string& server, const std::string& status);
 };
 
-} // namespace ollamacode
+} // namespace oleg
 
-#endif // OLLAMACODE_MCP_CLIENT_H
+#endif // OLEG_MCP_CLIENT_H

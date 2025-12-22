@@ -1,6 +1,6 @@
-# ollamaCode Quick Start Guide
+# OlEg Quick Start Guide
 
-Get up and running with ollamaCode in 5 minutes!
+Get up and running with OlEg in 5 minutes!
 
 ## Prerequisites
 
@@ -56,35 +56,35 @@ ollama pull llama3.1
 
 ---
 
-## Step 3: Install ollamaCode (1 minute)
+## Step 3: Install OlEg (1 minute)
 
 ### Option A: Pre-built Binary (macOS)
 
 ```bash
-git clone https://github.com/juergengp/ollamaCode.git
-cd ollamaCode
-sudo cp bin/ollamacode /usr/local/bin/
+git clone https://github.com/juergengp/OlEg.git
+cd OlEg
+sudo cp bin/oleg /usr/local/bin/
 ```
 
 ### Option B: Build from Source
 
 ```bash
-git clone https://github.com/juergengp/ollamaCode.git
-cd ollamaCode/cpp
+git clone https://github.com/juergengp/OlEg.git
+cd OlEg/cpp
 mkdir build && cd build
 cmake ..
 make
-sudo cp ollamacode /usr/local/bin/
+sudo cp oleg /usr/local/bin/
 ```
 
 ---
 
-## Step 4: Run ollamaCode!
+## Step 4: Run OlEg!
 
 ### Interactive Mode
 
 ```bash
-ollamacode
+oleg
 ```
 
 You'll see:
@@ -130,22 +130,22 @@ You> Create a script that lists all TODO comments
 | `/models` | List available models |
 | `/model` | Switch model interactively |
 | `/config` | Show current settings |
-| `/exit` | Exit ollamaCode |
+| `/exit` | Exit OlEg |
 
 ### Command Line Options
 
 ```bash
 # Single prompt (non-interactive)
-ollamacode "Explain Docker containers"
+oleg "Explain Docker containers"
 
 # Use specific model
-ollamacode -m codellama "Write a Python function"
+oleg -m codellama "Write a Python function"
 
 # Auto-approve all tools
-ollamacode -a
+oleg -a
 
 # Enable MCP servers
-ollamacode --mcp
+oleg --mcp
 ```
 
 ---
@@ -154,7 +154,7 @@ ollamacode --mcp
 
 1. **Explore MCP** - Connect to external services
    ```bash
-   ollamacode --mcp
+   oleg --mcp
    You> /mcp tools
    ```
 
@@ -199,5 +199,5 @@ You> /safe off
 
 ## Need Help?
 
-- [GitHub Issues](https://github.com/juergengp/ollamaCode/issues)
-- [Full Documentation](https://github.com/juergengp/ollamaCode#documentation)
+- [GitHub Issues](https://github.com/juergengp/OlEg/issues)
+- [Full Documentation](https://github.com/juergengp/OlEg#documentation)

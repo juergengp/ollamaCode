@@ -9,7 +9,7 @@
 
 using json = nlohmann::json;
 
-namespace ollamacode {
+namespace oleg {
 
 // CURL write callback
 static size_t writeCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
@@ -413,4 +413,4 @@ Embedding EmbeddingClient::normalize(const Embedding& emb) {
     return result;
 }
 
-} // namespace ollamacode
+} // namespace oleg

@@ -15,7 +15,7 @@
 #include <readline/history.h>
 #endif
 
-namespace ollamacode {
+namespace oleg {
 
 CLI::CLI()
     : agentModeEnabled_(true)  // Enable agent mode by default
@@ -67,7 +67,7 @@ bool CLI::parseArgs(int argc, char* argv[]) {
             printHelp();
             return false;
         } else if (arg == "-v" || arg == "--version") {
-            std::cout << "ollamaCode version 2.3.0 (C++)" << std::endl;
+            std::cout << "OlEg version 2.3.0 (C++)" << std::endl;
             return false;
         } else if (arg == "-m" || arg == "--model") {
             if (i + 1 < argc) {
@@ -114,7 +114,7 @@ void CLI::printBanner() {
 }
 
 void CLI::printHelp() {
-    std::cout << R"(Usage: ollamacode [OPTIONS] [PROMPT]
+    std::cout << R"(Usage: oleg [OPTIONS] [PROMPT]
 
 Interactive CLI for Ollama with Claude Code-like tool calling
 
@@ -143,7 +143,7 @@ INTERACTIVE COMMANDS (use /command):
     /mcp tools              List available MCP tools
     /clear                  Clear screen
     /config                 Show configuration
-    /exit, /quit            Exit ollamacode
+    /exit, /quit            Exit oleg
 
 AGENT COMMANDS:
     /agent                  Show current agent status
@@ -182,14 +182,14 @@ LICENSE:
     /license deactivate     Remove license
 
 EXAMPLES:
-    ollamacode                              # Start interactive mode
-    ollamacode "List all Python files"      # Single prompt with tools
-    ollamacode -m llama3 "Hello"            # Use specific model
-    ollamacode -a "Build the project"       # Auto-approve all tools
-    ollamacode --mcp "Search the web"       # Use MCP tools
+    oleg                              # Start interactive mode
+    oleg "List all Python files"      # Single prompt with tools
+    oleg -m llama3 "Hello"            # Use specific model
+    oleg -a "Build the project"       # Auto-approve all tools
+    oleg --mcp "Search the web"       # Use MCP tools
 
 MCP SERVERS:
-    Configure MCP servers in ~/.config/ollamacode/mcp_servers.json
+    Configure MCP servers in ~/.config/oleg/mcp_servers.json
     See docs/MCP_SETUP.md for configuration examples
 
 WHAT'S NEW in v2.3.0:
@@ -422,7 +422,7 @@ void CLI::initializeMCP() {
     // Load server configurations from config
     auto servers = config_->getMCPServers();
     for (const auto& server : servers) {
-        ollamacode::MCPServerConfig mcp_config;
+        oleg::MCPServerConfig mcp_config;
         mcp_config.name = server.name;
         mcp_config.command = server.command;
         mcp_config.args = server.args;
@@ -1542,4 +1542,4 @@ int CLI::run() {
     return 0;
 }
 
-} // namespace ollamacode
+} // namespace oleg

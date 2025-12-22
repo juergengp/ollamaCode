@@ -3,7 +3,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace ollamacode {
+namespace oleg {
 
 OllamaClient::OllamaClient(const std::string& host)
     : host_(host)
@@ -562,4 +562,4 @@ bool OllamaClient::pushModel(
     }
 }
 
-} // namespace ollamacode
+} // namespace oleg

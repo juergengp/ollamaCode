@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace ollamacode {
+namespace oleg {
 
 std::string ToolParser::extractTag(const std::string& text, const std::string& tag) {
     std::string openTag = "<" + tag + ">";
@@ -239,4 +239,4 @@ std::string ToolParser::extractResponseText(const std::string& response) {
     return utils::trim(cleaned);
 }
 
-} // namespace ollamacode
+} // namespace oleg

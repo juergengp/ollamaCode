@@ -1,12 +1,12 @@
-#ifndef OLLAMACODE_TOOL_EXECUTOR_H
-#define OLLAMACODE_TOOL_EXECUTOR_H
+#ifndef OLEG_TOOL_EXECUTOR_H
+#define OLEG_TOOL_EXECUTOR_H
 
 #include <string>
 #include <functional>
 #include <memory>
 #include "tool_parser.h"
 
-namespace ollamacode {
+namespace oleg {
 
 class Config; // Forward declaration
 class MCPClient; // Forward declaration
@@ -82,6 +82,6 @@ private:
     std::string executeCommand(const std::string& command, int& exit_code);
 };
 
-} // namespace ollamacode
+} // namespace oleg
 
-#endif // OLLAMACODE_TOOL_EXECUTOR_H
+#endif // OLEG_TOOL_EXECUTOR_H

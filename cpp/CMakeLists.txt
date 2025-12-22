@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(ollamacode VERSION 2.3.0 LANGUAGES CXX)
+project(oleg VERSION 2.3.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -128,10 +128,10 @@ set(HEADERS
 )
 
 # Main executable
-add_executable(ollamacode ${SOURCES} ${HEADERS})
+add_executable(oleg ${SOURCES} ${HEADERS})
 
 # Link libraries
-target_link_libraries(ollamacode
+target_link_libraries(oleg
     ${CURL_LIBRARIES}
     ${SQLite3_LIBRARIES}
     Threads::Threads
@@ -139,7 +139,7 @@ target_link_libraries(ollamacode
 
 # macOS frameworks for hardware ID
 if(APPLE)
-    target_link_libraries(ollamacode
+    target_link_libraries(oleg
         "-framework IOKit"
         "-framework CoreFoundation"
     )
@@ -147,41 +147,41 @@ endif()
 
 # Link readline if available
 if(READLINE_FOUND)
-    target_include_directories(ollamacode PRIVATE ${READLINE_INCLUDE_DIRS})
+    target_include_directories(oleg PRIVATE ${READLINE_INCLUDE_DIRS})
     # On macOS, use the full path to Homebrew's readline to avoid linking against system libedit
     if(APPLE AND EXISTS "/opt/homebrew/opt/readline/lib/libreadline.dylib")
-        target_link_libraries(ollamacode "/opt/homebrew/opt/readline/lib/libreadline.dylib")
+        target_link_libraries(oleg "/opt/homebrew/opt/readline/lib/libreadline.dylib")
     else()
-        target_link_libraries(ollamacode ${READLINE_LIBRARIES})
+        target_link_libraries(oleg ${READLINE_LIBRARIES})
     endif()
-    target_compile_definitions(ollamacode PRIVATE HAVE_READLINE)
+    target_compile_definitions(oleg PRIVATE HAVE_READLINE)
 endif()
 
 # Link PostgreSQL if available
 if(PostgreSQL_FOUND)
-    target_include_directories(ollamacode PRIVATE ${PostgreSQL_INCLUDE_DIRS})
-    target_link_libraries(ollamacode ${PostgreSQL_LIBRARIES})
-    target_compile_definitions(ollamacode PRIVATE HAVE_POSTGRESQL)
+    target_include_directories(oleg PRIVATE ${PostgreSQL_INCLUDE_DIRS})
+    target_link_libraries(oleg ${PostgreSQL_LIBRARIES})
+    target_compile_definitions(oleg PRIVATE HAVE_POSTGRESQL)
 endif()
 
 # Link MySQL if available
 if(MYSQL_FOUND)
-    target_include_directories(ollamacode PRIVATE ${MYSQL_INCLUDE_DIRS})
-    target_link_libraries(ollamacode ${MYSQL_LIBRARIES})
-    target_compile_definitions(ollamacode PRIVATE HAVE_MYSQL)
+    target_include_directories(oleg PRIVATE ${MYSQL_INCLUDE_DIRS})
+    target_link_libraries(oleg ${MYSQL_LIBRARIES})
+    target_compile_definitions(oleg PRIVATE HAVE_MYSQL)
 endif()
 
 # Link FAISS if available
 if(faiss_FOUND)
-    target_link_libraries(ollamacode faiss)
-    target_compile_definitions(ollamacode PRIVATE HAVE_FAISS)
+    target_link_libraries(oleg faiss)
+    target_compile_definitions(oleg PRIVATE HAVE_FAISS)
 endif()
 
 # Installation
-install(TARGETS ollamacode DESTINATION bin)
+install(TARGETS oleg DESTINATION bin)
 
 # Create config directory
-install(DIRECTORY DESTINATION $ENV{HOME}/.config/ollamacode)
+install(DIRECTORY DESTINATION $ENV{HOME}/.config/oleg)
 
 # Tests (optional)
 option(BUILD_TESTS "Build tests" OFF)
@@ -191,7 +191,7 @@ if(BUILD_TESTS)
 endif()
 
 # Print build info
-message(STATUS "ollamaCode ${PROJECT_VERSION}")
+message(STATUS "OlEg ${PROJECT_VERSION}")
 message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "CURL found: ${CURL_FOUND}")

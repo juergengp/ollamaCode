@@ -9,7 +9,7 @@
 
 using json = nlohmann::json;
 
-namespace ollamacode {
+namespace oleg {
 
 // CURL write callback
 static size_t writeCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
@@ -175,7 +175,7 @@ std::vector<SearchResult> BraveProvider::search(const std::string& query, int ma
 // ============================================================================
 
 WebSpider::WebSpider()
-    : userAgent_("ollamaCode Spider/1.0")
+    : userAgent_("OlEg Spider/1.0")
     , timeout_ms_(30000) {
 }
 
@@ -457,4 +457,4 @@ std::vector<WebPage> SearchClient::crawlSite(const std::string& url, int max_pag
     return spider_->crawl(url, max_pages);
 }
 
-} // namespace ollamacode
+} // namespace oleg

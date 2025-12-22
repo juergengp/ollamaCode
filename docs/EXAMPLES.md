@@ -1,6 +1,6 @@
-# ollamaCode Examples
+# OlEg Examples
 
-This document provides practical examples of using ollamaCode with tool calling.
+This document provides practical examples of using OlEg with tool calling.
 
 ## Basic Examples
 
@@ -8,7 +8,7 @@ This document provides practical examples of using ollamaCode with tool calling.
 
 **Request:**
 ```bash
-ollamacode "Find all shell scripts in this directory and show me which ones are executable"
+oleg "Find all shell scripts in this directory and show me which ones are executable"
 ```
 
 **AI Workflow:**
@@ -42,7 +42,7 @@ ollamacode "Find all shell scripts in this directory and show me which ones are 
 
 **Request:**
 ```bash
-ollamacode "In config.json, change the port from 8080 to 9090"
+oleg "In config.json, change the port from 8080 to 9090"
 ```
 
 **AI Workflow:**
@@ -76,7 +76,7 @@ ollamacode "In config.json, change the port from 8080 to 9090"
 
 **Request:**
 ```bash
-ollamacode "Check disk usage and memory usage on this system"
+oleg "Check disk usage and memory usage on this system"
 ```
 
 **AI Workflow:**
@@ -112,7 +112,7 @@ ollamacode "Check disk usage and memory usage on this system"
 
 **Request:**
 ```bash
-ollamacode "Create a basic Python project structure with src/ directory, main.py, requirements.txt, and README.md"
+oleg "Create a basic Python project structure with src/ directory, main.py, requirements.txt, and README.md"
 ```
 
 **AI Workflow:**
@@ -193,7 +193,7 @@ python src/main.py
 
 **Request:**
 ```bash
-ollamacode "Find all functions in Python files that have more than 50 lines and create a report"
+oleg "Find all functions in Python files that have more than 50 lines and create a report"
 ```
 
 **AI Workflow:**
@@ -210,7 +210,7 @@ This demonstrates the AI's ability to plan and execute complex multi-step workfl
 
 **Request:**
 ```bash
-ollamacode "Find error messages in app.log from the last hour and summarize them"
+oleg "Find error messages in app.log from the last hour and summarize them"
 ```
 
 **AI Workflow:**
@@ -300,7 +300,7 @@ Done! I've created a config.py file and updated main.py to import the PORT from 
 
 ### 3. Use Auto-Approve for Trusted Tasks
 ```bash
-ollamacode -a "Run the test suite and show me any failures"
+oleg -a "Run the test suite and show me any failures"
 ```
 
 ### 4. Leverage Safe Mode
@@ -324,7 +324,7 @@ You> Create a list of entry points in entry_points.md
 # ci-check.sh
 
 # Auto-approve mode for CI
-ollamacode -a "Run pytest and if any tests fail, read the error logs and create a summary report in test-failures.md"
+oleg -a "Run pytest and if any tests fail, read the error logs and create a summary report in test-failures.md"
 
 # Check if report was created
 if [ -f "test-failures.md" ]; then
@@ -341,7 +341,7 @@ exit 0
 #!/bin/bash
 # daily-report.sh
 
-ollamacode -a "Check git log for today's commits, analyze changed files, and create a daily-summary.md report"
+oleg -a "Check git log for today's commits, analyze changed files, and create a daily-summary.md report"
 ```
 
 ### Code Maintenance
@@ -350,7 +350,7 @@ ollamacode -a "Check git log for today's commits, analyze changed files, and cre
 #!/bin/bash
 # find-todos.sh
 
-ollamacode "Find all TODO, FIXME, and HACK comments in the codebase and create a prioritized todo-list.md"
+oleg "Find all TODO, FIXME, and HACK comments in the codebase and create a prioritized todo-list.md"
 ```
 
 ---
@@ -364,14 +364,14 @@ ollamacode "Find all TODO, FIXME, and HACK comments in the codebase and create a
 export OLLAMA_HOST=http://ai-server.company.com:11434
 
 # Use as normal
-ollamacode "Your request here"
+oleg "Your request here"
 ```
 
 ### Team Shared Configuration
 
 ```bash
 # Create shared config
-cat > ~/.config/ollamacode/config << EOF
+cat > ~/.config/oleg/config << EOF
 MODEL=llama3-70b
 OLLAMA_HOST=http://shared-ai.local:11434
 TEMPERATURE=0.5
@@ -379,7 +379,7 @@ SAFE_MODE=true
 EOF
 
 # Everyone on the team uses the same powerful model
-ollamacode
+oleg
 ```
 
 ---
@@ -401,15 +401,15 @@ Have a great example? Submit a PR with your use case!
 
 1. Fork the repository
 2. Add your example to this file
-3. Test it with ollamaCode
+3. Test it with OlEg
 4. Submit a pull request
 
 ---
 
 ## Need Help?
 
-- GitHub Issues: https://github.com/core-at/ollamacode/issues
+- GitHub Issues: https://github.com/core-at/oleg/issues
 - Email: support@core.at
 - Documentation: README-v2.md
 
-Happy coding with ollamaCode! 🚀
+Happy coding with OlEg! 🚀

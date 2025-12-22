@@ -1,5 +1,5 @@
-#ifndef OLLAMACODE_CLI_H
-#define OLLAMACODE_CLI_H
+#ifndef OLEG_CLI_H
+#define OLEG_CLI_H
 
 #include <string>
 #include <vector>
@@ -17,7 +17,7 @@
 #include "model_manager.h"
 #include "prompt_db.h"
 
-namespace ollamacode {
+namespace oleg {
 
 class CLI {
 public:
@@ -119,6 +119,6 @@ private:
     static const int MAX_TOOL_ITERATIONS = 10;
 };
 
-} // namespace ollamacode
+} // namespace oleg
 
-#endif // OLLAMACODE_CLI_H
+#endif // OLEG_CLI_H

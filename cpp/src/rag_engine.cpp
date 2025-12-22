@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fnmatch.h>
 
-namespace ollamacode {
+namespace oleg {
 
 RAGEngine::RAGEngine() : initialized_(false) {
 }
@@ -427,4 +427,4 @@ VectorDBStats RAGEngine::getStats() {
     return vector_db_->getStats();
 }
 
-} // namespace ollamacode
+} // namespace oleg

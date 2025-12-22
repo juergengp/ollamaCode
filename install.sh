@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# ollamaCode - Universal Installation Script
+# OlEg - Universal Installation Script
 # Version: 2.1.0
 # Supports: macOS, Linux (Fedora, RHEL, CentOS, Debian, Ubuntu)
 #
@@ -18,7 +18,7 @@ BOLD='\033[1m'
 
 # Installation paths
 INSTALL_DIR="/usr/local/bin"
-CONFIG_DIR="${HOME}/.config/ollamacode"
+CONFIG_DIR="${HOME}/.config/oleg"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo -e "${BLUE}${BOLD}"
@@ -42,14 +42,14 @@ detect_platform() {
         Darwin)
             PLATFORM="macos"
             if [[ "$ARCH" == "arm64" ]]; then
-                BINARY_NAME="ollamacode-arm64"
+                BINARY_NAME="oleg-arm64"
             else
-                BINARY_NAME="ollamacode-x86_64"
+                BINARY_NAME="oleg-x86_64"
             fi
             ;;
         Linux)
             PLATFORM="linux"
-            BINARY_NAME="ollamacode-linux-${ARCH}"
+            BINARY_NAME="oleg-linux-${ARCH}"
             ;;
         *)
             echo -e "${RED}Error: Unsupported OS: ${OS}${NC}"
@@ -96,15 +96,15 @@ find_binary() {
     if [[ -f "${SCRIPT_DIR}/bin/${BINARY_NAME}" ]]; then
         BINARY_PATH="${SCRIPT_DIR}/bin/${BINARY_NAME}"
     # Try generic binary
-    elif [[ -f "${SCRIPT_DIR}/bin/ollamacode" ]]; then
-        BINARY_PATH="${SCRIPT_DIR}/bin/ollamacode"
+    elif [[ -f "${SCRIPT_DIR}/bin/oleg" ]]; then
+        BINARY_PATH="${SCRIPT_DIR}/bin/oleg"
     # Try build directory
-    elif [[ -f "${SCRIPT_DIR}/cpp/build/ollamacode" ]]; then
-        BINARY_PATH="${SCRIPT_DIR}/cpp/build/ollamacode"
+    elif [[ -f "${SCRIPT_DIR}/cpp/build/oleg" ]]; then
+        BINARY_PATH="${SCRIPT_DIR}/cpp/build/oleg"
     fi
 
     if [[ -z "$BINARY_PATH" ]]; then
-        echo -e "${RED}Error: ollamacode binary not found${NC}"
+        echo -e "${RED}Error: oleg binary not found${NC}"
         echo -e "${YELLOW}Build it first with:${NC}"
         echo -e "  cd cpp && mkdir -p build && cd build && cmake .. && make"
         exit 1
@@ -115,18 +115,18 @@ find_binary() {
 
 # Install binary
 install_binary() {
-    echo -e "${YELLOW}Installing ollamacode...${NC}"
+    echo -e "${YELLOW}Installing oleg...${NC}"
 
     if [[ -w "${INSTALL_DIR}" ]]; then
-        cp "$BINARY_PATH" "${INSTALL_DIR}/ollamacode"
-        chmod +x "${INSTALL_DIR}/ollamacode"
+        cp "$BINARY_PATH" "${INSTALL_DIR}/oleg"
+        chmod +x "${INSTALL_DIR}/oleg"
     else
         echo -e "${YELLOW}(requires sudo)${NC}"
-        sudo cp "$BINARY_PATH" "${INSTALL_DIR}/ollamacode"
-        sudo chmod +x "${INSTALL_DIR}/ollamacode"
+        sudo cp "$BINARY_PATH" "${INSTALL_DIR}/oleg"
+        sudo chmod +x "${INSTALL_DIR}/oleg"
     fi
 
-    echo -e "${GREEN}Installed to ${INSTALL_DIR}/ollamacode${NC}"
+    echo -e "${GREEN}Installed to ${INSTALL_DIR}/oleg${NC}"
 }
 
 # Create config directory
@@ -139,12 +139,12 @@ create_config() {
 test_installation() {
     echo -e "${YELLOW}Testing installation...${NC}"
 
-    if command_exists ollamacode; then
-        VERSION=$(ollamacode --version 2>&1 || echo "unknown")
-        echo -e "${GREEN}ollamacode is working!${NC}"
+    if command_exists oleg; then
+        VERSION=$(oleg --version 2>&1 || echo "unknown")
+        echo -e "${GREEN}oleg is working!${NC}"
         echo -e "  ${CYAN}${VERSION}${NC}"
     else
-        echo -e "${RED}Installation failed - ollamacode not found in PATH${NC}"
+        echo -e "${RED}Installation failed - oleg not found in PATH${NC}"
         exit 1
     fi
 }
@@ -174,9 +174,9 @@ main() {
     echo -e "${GREEN}${BOLD}Installation Complete!${NC}"
     echo ""
     echo -e "${CYAN}${BOLD}Quick Start:${NC}"
-    echo -e "  ${BOLD}ollamacode${NC}                  # Start interactive mode"
-    echo -e "  ${BOLD}ollamacode --help${NC}           # Show help"
-    echo -e "  ${BOLD}ollamacode --mcp${NC}            # Start with MCP servers"
+    echo -e "  ${BOLD}oleg${NC}                  # Start interactive mode"
+    echo -e "  ${BOLD}oleg --help${NC}           # Show help"
+    echo -e "  ${BOLD}oleg --mcp${NC}            # Start with MCP servers"
     echo ""
     echo -e "${CYAN}${BOLD}Key Commands:${NC}"
     echo -e "  ${BOLD}/model${NC}                      # Interactive model selector"
@@ -186,7 +186,7 @@ main() {
     echo ""
     echo -e "${CYAN}${BOLD}Next Steps:${NC}"
     echo -e "  1. Pull a model: ${BOLD}ollama pull llama3.1${NC}"
-    echo -e "  2. Start ollamacode: ${BOLD}ollamacode${NC}"
+    echo -e "  2. Start oleg: ${BOLD}oleg${NC}"
     echo ""
 }
 

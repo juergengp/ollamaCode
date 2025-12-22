@@ -1,11 +1,11 @@
-#ifndef OLLAMACODE_TOOL_PARSER_H
-#define OLLAMACODE_TOOL_PARSER_H
+#ifndef OLEG_TOOL_PARSER_H
+#define OLEG_TOOL_PARSER_H
 
 #include <string>
 #include <vector>
 #include <map>
 
-namespace ollamacode {
+namespace oleg {
 
 struct ToolCall {
     std::string name;
@@ -36,6 +36,6 @@ private:
     std::vector<ToolCall> parseAntmlFormat(const std::string& response);
 };
 
-} // namespace ollamacode
+} // namespace oleg
 
-#endif // OLLAMACODE_TOOL_PARSER_H
+#endif // OLEG_TOOL_PARSER_H

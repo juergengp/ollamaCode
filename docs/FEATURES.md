@@ -1,6 +1,6 @@
-# ollamaCode Features
+# OlEg Features
 
-Complete guide to all features available in ollamaCode v2.0.2
+Complete guide to all features available in OlEg v2.0.2
 
 ## Table of Contents
 
@@ -15,22 +15,22 @@ Complete guide to all features available in ollamaCode v2.0.2
 
 ## Interactive Mode
 
-ollamaCode provides a rich interactive terminal experience for conversing with your local AI models.
+OlEg provides a rich interactive terminal experience for conversing with your local AI models.
 
 ### Starting Interactive Mode
 
 ```bash
 # Basic start
-ollamacode
+oleg
 
 # With specific model
-ollamacode -m llama3.1
+oleg -m llama3.1
 
 # With MCP enabled
-ollamacode --mcp
+oleg --mcp
 
 # With auto-approve for tools
-ollamacode -a
+oleg -a
 ```
 
 ### Terminal Interface
@@ -195,13 +195,13 @@ Mode: content
 
 ## MCP Support
 
-Model Context Protocol (MCP) allows ollamaCode to connect to external services and tools.
+Model Context Protocol (MCP) allows OlEg to connect to external services and tools.
 
 ### Enabling MCP
 
 ```bash
 # Enable on startup
-ollamacode --mcp
+oleg --mcp
 
 # Enable interactively
 You> /mcp on
@@ -244,7 +244,7 @@ You> Read the README from my GitHub repo
 [MCP Tool: github/get_file_contents]
 Arguments: {
   "owner": "juergengp",
-  "repo": "ollamaCode",
+  "repo": "OlEg",
   "path": "README.md"
 }
 
@@ -253,14 +253,14 @@ Execute MCP tool? (y/n): y
 ✓ MCP tool executed successfully
 
 === MCP Output ===
-# ollamaCode
+# OlEg
 Interactive CLI for Ollama...
 ==================
 ```
 
 ### Configuring MCP Servers
 
-Create `~/.config/ollamacode/mcp_servers.json`:
+Create `~/.config/oleg/mcp_servers.json`:
 
 ```json
 {
@@ -330,17 +330,17 @@ You> /use codellama
 
 ```bash
 # Use specific model
-ollamacode -m qwen2.5:14b "Write a Python function"
+oleg -m qwen2.5:14b "Write a Python function"
 
 # Use specific model in interactive mode
-ollamacode -m llama3.1:70b
+oleg -m llama3.1:70b
 ```
 
 ---
 
 ## Safety Features
 
-ollamaCode includes multiple safety mechanisms to protect your system.
+OlEg includes multiple safety mechanisms to protect your system.
 
 ### Safe Mode
 
@@ -398,7 +398,7 @@ You> /auto on
 ⚠ Auto-approve enabled
 
 # Or via command line
-ollamacode -a
+oleg -a
 ```
 
 ---
@@ -407,7 +407,7 @@ ollamacode -a
 
 ### Configuration Storage
 
-Settings are stored in SQLite at `~/.config/ollamacode/config.db`
+Settings are stored in SQLite at `~/.config/oleg/config.db`
 
 ### Viewing Current Configuration
 
@@ -435,13 +435,13 @@ You> /temp 0.3
 ✓ Temperature set to: 0.3
 
 # Or via command line
-ollamacode -t 0.5 "Generate test cases"
+oleg -t 0.5 "Generate test cases"
 ```
 
 ### Command Line Options
 
 ```
-Usage: ollamacode [OPTIONS] [PROMPT]
+Usage: oleg [OPTIONS] [PROMPT]
 
 OPTIONS:
     -m, --model MODEL       Use specific model

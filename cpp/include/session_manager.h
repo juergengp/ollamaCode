@@ -1,5 +1,5 @@
-#ifndef OLLAMACODE_SESSION_MANAGER_H
-#define OLLAMACODE_SESSION_MANAGER_H
+#ifndef OLEG_SESSION_MANAGER_H
+#define OLEG_SESSION_MANAGER_H
 
 #include <string>
 #include <vector>
@@ -8,7 +8,7 @@
 #include <sqlite3.h>
 #include "json.hpp"
 
-namespace ollamacode {
+namespace oleg {
 
 using json = nlohmann::json;
 
@@ -148,6 +148,6 @@ private:
     std::string db_path_;
 };
 
-} // namespace ollamacode
+} // namespace oleg
 
-#endif // OLLAMACODE_SESSION_MANAGER_H
+#endif // OLEG_SESSION_MANAGER_H

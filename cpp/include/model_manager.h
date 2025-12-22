@@ -1,5 +1,5 @@
-#ifndef OLLAMACODE_MODEL_MANAGER_H
-#define OLLAMACODE_MODEL_MANAGER_H
+#ifndef OLEG_MODEL_MANAGER_H
+#define OLEG_MODEL_MANAGER_H
 
 #include <string>
 #include <vector>
@@ -7,7 +7,7 @@
 #include <functional>
 #include "ollama_client.h"
 
-namespace ollamacode {
+namespace oleg {
 
 // Forward declarations
 class Config;
@@ -137,6 +137,6 @@ private:
     bool checkLicense(const std::string& operation);
 };
 
-} // namespace ollamacode
+} // namespace oleg
 
-#endif // OLLAMACODE_MODEL_MANAGER_H
+#endif // OLEG_MODEL_MANAGER_H
