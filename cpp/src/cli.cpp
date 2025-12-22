@@ -67,7 +67,7 @@ bool CLI::parseArgs(int argc, char* argv[]) {
             printHelp();
             return false;
         } else if (arg == "-v" || arg == "--version") {
-            std::cout << "OlEg version 2.3.0 (C++)" << std::endl;
+            std::cout << "OlEg version 2.3.1 (C++)" << std::endl;
             return false;
         } else if (arg == "-m" || arg == "--model") {
             if (i + 1 < argc) {
@@ -109,7 +109,7 @@ void CLI::printBanner() {
 
 )" << utils::terminal::RESET;
 
-    std::cout << utils::terminal::BLUE << "Interactive CLI for Ollama - Version 2.3.0 (C++)" << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::BLUE << "Interactive CLI for Ollama - Version 2.3.1 (C++)" << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::YELLOW << "Type '/help' for commands, '/exit' to quit" << utils::terminal::RESET << "\n\n";
 }
 
