@@ -13,6 +13,9 @@
 #include "mcp_client.h"
 #include "agent.h"
 #include "task_suggester.h"
+#include "license.h"
+#include "model_manager.h"
+#include "prompt_db.h"
 
 namespace ollamacode {
 
@@ -72,6 +75,15 @@ private:
     // Command handlers
     void handleCommand(const std::string& input);
 
+    // Model management handlers
+    void handleModelCommand(const std::string& cmd);
+
+    // Prompt database handlers
+    void handlePromptCommand(const std::string& cmd);
+
+    // License handlers
+    void handleLicenseCommand(const std::string& cmd);
+
     // Confirmation callback for tools
     bool confirmToolExecution(const std::string& tool_name, const std::string& description);
 
@@ -84,6 +96,9 @@ private:
     std::unique_ptr<CommandMenu> command_menu_;
     std::unique_ptr<MCPClient> mcp_client_;
     std::unique_ptr<TaskSuggester> task_suggester_;
+    std::unique_ptr<LicenseManager> license_manager_;
+    std::unique_ptr<ModelManager> model_manager_;
+    std::unique_ptr<PromptDatabase> prompt_db_;
 
     // Current agent
     Agent currentAgent_;

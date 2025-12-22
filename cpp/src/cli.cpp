@@ -33,6 +33,18 @@ CLI::CLI()
     mcp_client_ = std::make_unique<MCPClient>();
     task_suggester_ = std::make_unique<TaskSuggester>();
 
+    // Initialize license manager
+    license_manager_ = std::make_unique<LicenseManager>();
+    license_manager_->initialize();
+
+    // Initialize model manager
+    model_manager_ = std::make_unique<ModelManager>(*client_, *config_, license_manager_.get());
+
+    // Initialize prompt database
+    prompt_db_ = std::make_unique<PromptDatabase>();
+    prompt_db_->initialize();
+    prompt_db_->setLicenseManager(license_manager_.get());
+
     // Initialize with general agent
     currentAgent_ = AgentRegistry::getAgent(AgentType::General);
 
@@ -55,7 +67,7 @@ bool CLI::parseArgs(int argc, char* argv[]) {
             printHelp();
             return false;
         } else if (arg == "-v" || arg == "--version") {
-            std::cout << "ollamaCode version 2.2.0 (C++)" << std::endl;
+            std::cout << "ollamaCode version 2.3.0 (C++)" << std::endl;
             return false;
         } else if (arg == "-m" || arg == "--model") {
             if (i + 1 < argc) {
@@ -97,7 +109,7 @@ void CLI::printBanner() {
 
 )" << utils::terminal::RESET;
 
-    std::cout << utils::terminal::BLUE << "Interactive CLI for Ollama - Version 2.2.0 (C++)" << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::BLUE << "Interactive CLI for Ollama - Version 2.3.0 (C++)" << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::YELLOW << "Type '/help' for commands, '/exit' to quit" << utils::terminal::RESET << "\n\n";
 }
 
@@ -146,6 +158,29 @@ AGENT COMMANDS:
     /db, /database          Switch to database agent (SQL queries)
     /learn, /memory, /rag   Switch to learner agent (RAG knowledge)
 
+MODEL MANAGEMENT:
+    /model create           Interactive custom model creation
+    /model show <name>      Display model details
+    /model copy <src> <dst> Clone/copy a model
+    /model delete <name>    Delete a model
+    /model pull <name>      Download model from Ollama
+    /model push <name>      Upload model to Ollama.ai
+
+PROMPT DATABASE:
+    /prompt                 Interactive prompt selector
+    /prompt add             Add new prompt
+    /prompt edit <name>     Edit existing prompt
+    /prompt delete <name>   Delete prompt
+    /prompt list            List all prompts
+    /prompt search <query>  Search prompts
+    /prompt export <file>   Export prompts to JSON
+    /prompt import <file>   Import prompts from JSON
+
+LICENSE:
+    /license                Show license status
+    /license activate <key> Activate license key
+    /license deactivate     Remove license
+
 EXAMPLES:
     ollamacode                              # Start interactive mode
     ollamacode "List all Python files"      # Single prompt with tools
@@ -157,12 +192,12 @@ MCP SERVERS:
     Configure MCP servers in ~/.config/ollamacode/mcp_servers.json
     See docs/MCP_SETUP.md for configuration examples
 
-WHAT'S NEW in v2.2.0:
-    - New Searcher agent with web search (DuckDuckGo) and web spider
-    - New Database agent supporting SQLite, PostgreSQL, MySQL
-    - New Learner agent with RAG (vector database knowledge)
-    - Embedding support via Ollama or local hash-based
-    - Vector database backends: SQLite, ChromaDB, FAISS
+WHAT'S NEW in v2.3.0:
+    - Custom LLM builder with Modelfile support
+    - Model management: create, copy, delete, pull, push
+    - Prompt database with categories and search
+    - Activation key system for premium features
+    - Import/export prompts as JSON
 
 )";
 }
@@ -1102,8 +1137,255 @@ void CLI::handleCommand(const std::string& input) {
                cmd == "search" || cmd == "web" || cmd == "db" || cmd == "database" ||
                cmd == "learn" || cmd == "memory" || cmd == "rag") {
         handleAgentCommand(cmd);
+    } else if (utils::startsWith(cmd, "model ") || cmd == "model create" ||
+               cmd == "model show" || cmd == "model copy" || cmd == "model delete" ||
+               cmd == "model pull" || cmd == "model push" || cmd == "model edit") {
+        handleModelCommand(cmd);
+    } else if (utils::startsWith(cmd, "prompt") || cmd == "prompts") {
+        handlePromptCommand(cmd);
+    } else if (utils::startsWith(cmd, "license")) {
+        handleLicenseCommand(cmd);
     } else {
         utils::terminal::printError("Unknown command. Type '/help' for available commands.");
+    }
+}
+
+// ============================================================================
+// Model Command Handlers
+// ============================================================================
+
+void CLI::handleModelCommand(const std::string& cmd) {
+    if (cmd == "model create") {
+        // Interactive model creation
+        auto builder = model_manager_->interactiveModelBuilder();
+        if (builder.isValid()) {
+            std::cout << "Enter name for the new model: ";
+            std::string name;
+            std::getline(std::cin, name);
+            if (!name.empty()) {
+                model_manager_->createModel(name, builder, [](const std::string& status) {
+                    std::cout << "\r" << status << std::flush;
+                });
+            }
+        }
+    } else if (utils::startsWith(cmd, "model show ")) {
+        std::string model_name = utils::trim(cmd.substr(11));
+        model_manager_->printModelInfo(model_name);
+    } else if (utils::startsWith(cmd, "model copy ")) {
+        // Parse: model copy <src> <dst>
+        std::string args = utils::trim(cmd.substr(11));
+        size_t space = args.find(' ');
+        if (space != std::string::npos) {
+            std::string src = args.substr(0, space);
+            std::string dst = utils::trim(args.substr(space + 1));
+            model_manager_->copyModel(src, dst);
+        } else {
+            utils::terminal::printError("Usage: /model copy <source> <destination>");
+        }
+    } else if (utils::startsWith(cmd, "model delete ")) {
+        std::string model_name = utils::trim(cmd.substr(13));
+        std::cout << "Delete model '" << model_name << "'? (y/n): ";
+        std::string confirm;
+        std::getline(std::cin, confirm);
+        if (confirm == "y" || confirm == "Y") {
+            model_manager_->deleteModel(model_name);
+        }
+    } else if (utils::startsWith(cmd, "model pull ")) {
+        std::string model_name = utils::trim(cmd.substr(11));
+        model_manager_->pullModel(model_name);
+    } else if (utils::startsWith(cmd, "model push ")) {
+        std::string model_name = utils::trim(cmd.substr(11));
+        model_manager_->pushModel(model_name);
+    } else if (utils::startsWith(cmd, "model edit ")) {
+        std::string model_name = utils::trim(cmd.substr(11));
+        auto builder = model_manager_->getCustomModelBuilder(model_name);
+        if (builder.isValid()) {
+            // Re-run wizard with existing values
+            auto new_builder = model_manager_->interactiveModelBuilder();
+            if (new_builder.isValid()) {
+                model_manager_->editModel(model_name, new_builder);
+            }
+        } else {
+            utils::terminal::printError("Custom model not found: " + model_name);
+        }
+    } else {
+        utils::terminal::printInfo("Model Commands:");
+        std::cout << "  /model create           - Interactive model creation\n";
+        std::cout << "  /model show <name>      - Show model details\n";
+        std::cout << "  /model copy <src> <dst> - Clone a model\n";
+        std::cout << "  /model delete <name>    - Delete a model\n";
+        std::cout << "  /model pull <name>      - Download from Ollama\n";
+        std::cout << "  /model push <name>      - Upload to Ollama.ai\n";
+        std::cout << "  /model edit <name>      - Edit model parameters\n";
+    }
+}
+
+// ============================================================================
+// Prompt Command Handlers
+// ============================================================================
+
+void CLI::handlePromptCommand(const std::string& cmd) {
+    if (cmd == "prompt" || cmd == "prompts") {
+        // Show prompt selector
+        std::string selected = prompt_db_->showPromptSelector();
+        if (!selected.empty()) {
+            utils::terminal::printSuccess("Selected prompt applied as context.");
+            // The prompt content could be used as system message or context
+        }
+    } else if (cmd == "prompt add") {
+        auto p = prompt_db_->showAddPromptDialog();
+        if (!p.name.empty() && !p.content.empty()) {
+            int64_t id = prompt_db_->addPrompt(p);
+            if (id > 0) {
+                utils::terminal::printSuccess("Prompt '" + p.name + "' added.");
+            } else {
+                utils::terminal::printError("Failed to add prompt.");
+            }
+        }
+    } else if (utils::startsWith(cmd, "prompt edit ")) {
+        std::string name = utils::trim(cmd.substr(12));
+        if (prompt_db_->showEditPromptDialog(name)) {
+            utils::terminal::printSuccess("Prompt updated.");
+        }
+    } else if (utils::startsWith(cmd, "prompt delete ")) {
+        std::string name = utils::trim(cmd.substr(14));
+        std::cout << "Delete prompt '" << name << "'? (y/n): ";
+        std::string confirm;
+        std::getline(std::cin, confirm);
+        if (confirm == "y" || confirm == "Y") {
+            if (prompt_db_->deletePromptByName(name)) {
+                utils::terminal::printSuccess("Prompt deleted.");
+            } else {
+                utils::terminal::printError("Failed to delete prompt.");
+            }
+        }
+    } else if (cmd == "prompt list" || utils::startsWith(cmd, "prompt list ")) {
+        std::string category;
+        if (utils::startsWith(cmd, "prompt list ")) {
+            category = utils::trim(cmd.substr(12));
+        }
+
+        std::vector<Prompt> prompts;
+        if (category.empty()) {
+            prompts = prompt_db_->getAllPrompts();
+        } else {
+            prompts = prompt_db_->getPromptsByCategory(category);
+        }
+
+        if (prompts.empty()) {
+            utils::terminal::printInfo("No prompts found.");
+        } else {
+            std::cout << "\n" << utils::terminal::BOLD << "Prompts" << utils::terminal::RESET << "\n";
+            std::cout << std::string(50, '-') << "\n";
+            for (const auto& p : prompts) {
+                std::cout << "  ";
+                if (p.is_favorite) std::cout << utils::terminal::YELLOW << "* " << utils::terminal::RESET;
+                std::cout << utils::terminal::GREEN << p.name << utils::terminal::RESET;
+                std::cout << " [" << p.category << "]";
+                if (!p.description.empty()) {
+                    std::string desc = p.description;
+                    if (desc.length() > 30) desc = desc.substr(0, 30) + "...";
+                    std::cout << " - " << desc;
+                }
+                std::cout << "\n";
+            }
+            std::cout << "\n";
+        }
+    } else if (utils::startsWith(cmd, "prompt search ")) {
+        std::string query = utils::trim(cmd.substr(14));
+        auto prompts = prompt_db_->searchPrompts(query);
+        if (prompts.empty()) {
+            utils::terminal::printInfo("No prompts matching '" + query + "'");
+        } else {
+            std::cout << "Found " << prompts.size() << " prompts:\n";
+            for (const auto& p : prompts) {
+                std::cout << "  - " << p.name << " [" << p.category << "]\n";
+            }
+        }
+    } else if (utils::startsWith(cmd, "prompt use ")) {
+        std::string name = utils::trim(cmd.substr(11));
+        auto p = prompt_db_->getPromptByName(name);
+        if (p.id > 0) {
+            prompt_db_->incrementUsageCount(p.id);
+            utils::terminal::printSuccess("Prompt '" + name + "' content:");
+            std::cout << utils::terminal::CYAN << p.content << utils::terminal::RESET << "\n";
+        } else {
+            utils::terminal::printError("Prompt not found: " + name);
+        }
+    } else if (utils::startsWith(cmd, "prompt export ")) {
+        std::string file_path = utils::trim(cmd.substr(14));
+        if (file_path.empty()) {
+            file_path = "prompts.json";
+        }
+        prompt_db_->exportToJson(file_path);
+    } else if (utils::startsWith(cmd, "prompt import ")) {
+        std::string file_path = utils::trim(cmd.substr(14));
+        prompt_db_->importFromJson(file_path);
+    } else if (utils::startsWith(cmd, "prompt favorite ")) {
+        std::string name = utils::trim(cmd.substr(16));
+        auto p = prompt_db_->getPromptByName(name);
+        if (p.id > 0) {
+            prompt_db_->toggleFavorite(p.id);
+            utils::terminal::printSuccess("Favorite toggled for '" + name + "'");
+        } else {
+            utils::terminal::printError("Prompt not found: " + name);
+        }
+    } else if (cmd == "prompt categories") {
+        auto categories = prompt_db_->getCategories();
+        std::cout << "\nCategories:\n";
+        for (const auto& c : categories) {
+            std::cout << "  - " << c.name;
+            if (!c.description.empty()) std::cout << " (" << c.description << ")";
+            std::cout << "\n";
+        }
+    } else {
+        utils::terminal::printInfo("Prompt Commands:");
+        std::cout << "  /prompt                  - Interactive prompt selector\n";
+        std::cout << "  /prompt add              - Add new prompt\n";
+        std::cout << "  /prompt edit <name>      - Edit prompt\n";
+        std::cout << "  /prompt delete <name>    - Delete prompt\n";
+        std::cout << "  /prompt list [category]  - List prompts\n";
+        std::cout << "  /prompt search <query>   - Search prompts\n";
+        std::cout << "  /prompt use <name>       - Show prompt content\n";
+        std::cout << "  /prompt export <file>    - Export to JSON\n";
+        std::cout << "  /prompt import <file>    - Import from JSON\n";
+        std::cout << "  /prompt favorite <name>  - Toggle favorite\n";
+        std::cout << "  /prompt categories       - List categories\n";
+    }
+}
+
+// ============================================================================
+// License Command Handlers
+// ============================================================================
+
+void CLI::handleLicenseCommand(const std::string& cmd) {
+    if (cmd == "license") {
+        license_manager_->showLicenseStatus();
+    } else if (utils::startsWith(cmd, "license activate ")) {
+        std::string key = utils::trim(cmd.substr(17));
+        if (license_manager_->activateKey(key)) {
+            utils::terminal::printSuccess("License activated successfully!");
+            license_manager_->showLicenseStatus();
+        } else {
+            auto info = license_manager_->getLicenseInfo();
+            utils::terminal::printError("Activation failed: " + info.error_message);
+        }
+    } else if (cmd == "license deactivate") {
+        std::cout << "Deactivate license? (y/n): ";
+        std::string confirm;
+        std::getline(std::cin, confirm);
+        if (confirm == "y" || confirm == "Y") {
+            license_manager_->deactivateKey();
+            utils::terminal::printSuccess("License deactivated.");
+        }
+    } else if (cmd == "license hwid") {
+        std::cout << "Hardware ID: " << license_manager_->getHardwareId() << "\n";
+    } else {
+        utils::terminal::printInfo("License Commands:");
+        std::cout << "  /license               - Show license status\n";
+        std::cout << "  /license activate <key> - Activate license key\n";
+        std::cout << "  /license deactivate    - Remove license\n";
+        std::cout << "  /license hwid          - Show hardware ID\n";
     }
 }
 

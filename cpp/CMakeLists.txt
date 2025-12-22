@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(ollamacode VERSION 2.2.0 LANGUAGES CXX)
+project(ollamacode VERSION 2.3.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -98,6 +98,9 @@ set(SOURCES
     src/embeddings.cpp
     src/vector_db.cpp
     src/rag_engine.cpp
+    src/license.cpp
+    src/model_manager.cpp
+    src/prompt_db.cpp
 )
 
 # Header files
@@ -119,6 +122,9 @@ set(HEADERS
     include/embeddings.h
     include/vector_db.h
     include/rag_engine.h
+    include/license.h
+    include/model_manager.h
+    include/prompt_db.h
 )
 
 # Main executable
@@ -130,6 +136,14 @@ target_link_libraries(ollamacode
     ${SQLite3_LIBRARIES}
     Threads::Threads
 )
+
+# macOS frameworks for hardware ID
+if(APPLE)
+    target_link_libraries(ollamacode
+        "-framework IOKit"
+        "-framework CoreFoundation"
+    )
+endif()
 
 # Link readline if available
 if(READLINE_FOUND)
