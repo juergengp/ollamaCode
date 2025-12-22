@@ -52,38 +52,9 @@
 
 **ollamaCode** brings the power of AI coding assistants to your local machine. It's like having Claude Code or GitHub Copilot, but running entirely on your hardware with your choice of open-source LLMs via [Ollama](https://ollama.ai).
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│    ____  _ _                       ____          _              │
-│   / __ \| | | __ _ _ __ ___   __ _/ ___|___   __| | ___         │
-│  | |  | | | |/ _` | '_ ` _ \ / _` | |   / _ \ / _` |/ _ \        │
-│  | |__| | | | (_| | | | | | | (_| | |__| (_) | (_| |  __/        │
-│   \____/|_|_|\__,_|_| |_| |_|\__,_|\____\___/ \__,_|\___|        │
-│                                                                 │
-│  Interactive CLI for Ollama - Version 2.1.0 (C++)               │
-│  Type '/help' for commands, '/exit' to quit                     │
-│                                                                 │
-│  Current Configuration:                                         │
-│    Model:        llama3.1                                       │
-│    Host:         http://localhost:11434                         │
-│    Temperature:  0.7                                            │
-│    MCP Enabled:  yes                                            │
-│                                                                 │
-│  You> Find all TODO comments in my project                      │
-│                                                                 │
-│  🔧 Executing 1 tool(s)...                                      │
-│  [Tool: Grep]                                                   │
-│  Pattern: TODO                                                  │
-│  Path: .                                                        │
-│                                                                 │
-│  === Search Results ===                                         │
-│  src/main.cpp:42: // TODO: Add error handling                   │
-│  src/utils.cpp:15: // TODO: Optimize this function              │
-│  =====================                                          │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
+<p align="center">
+  <img src="docs/assets/screenshot_startup.png" alt="ollamaCode Startup Screen" width="700">
+</p>
 
 ## Features
 
@@ -134,17 +105,9 @@ ollamaCode includes specialized agents that focus on specific tasks with curated
 
 When you enter a prompt, ollamaCode analyzes your task and suggests the most appropriate agent:
 
-```
-You> Find all TODO comments in the project
-
-Select an approach:
-
- > 🔍 explorer - Read-only exploration of codebase
-   🤖 Use general agent (all tools)
-   ✏️  Enter custom instruction
-
-(Use arrow keys to select, Enter to confirm, Esc to cancel)
-```
+<p align="center">
+  <img src="docs/assets/screenshot_agent_selection.png" alt="Agent Selection Menu" width="700">
+</p>
 
 ### MCP (Model Context Protocol) Support
 
@@ -254,6 +217,31 @@ open OllamaCode.xcodeproj
 **Requirements:** macOS 13.0+, Xcode 15+
 
 See [gui/README.md](gui/README.md) for detailed build instructions.
+
+---
+
+## Screenshots
+
+### Interactive Slash Commands
+Type `/` to access the interactive command menu with arrow-key navigation:
+
+<p align="center">
+  <img src="docs/assets/screenshot_slash_menu.png" alt="Slash Command Menu" width="700">
+</p>
+
+### Tool Execution
+The AI can search code, read files, execute commands, and more:
+
+<p align="center">
+  <img src="docs/assets/screenshot_tool_execution.png" alt="Tool Execution" width="700">
+</p>
+
+### MCP Integration
+Connect to external services like GitHub, databases, and more:
+
+<p align="center">
+  <img src="docs/assets/screenshot_mcp.png" alt="MCP Integration" width="700">
+</p>
 
 ---
 
