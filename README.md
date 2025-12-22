@@ -218,32 +218,6 @@ open OllamaCode.xcodeproj
 
 See [gui/README.md](gui/README.md) for detailed build instructions.
 
-### GUI Screenshots
-
-<p align="center">
-  <img src="docs/assets/gui_main_clean.png" alt="OllamaCode GUI - Main Window" width="700">
-  <br>
-  <em>Main chat interface with session sidebar</em>
-</p>
-
-<p align="center">
-  <img src="docs/assets/gui_settings_general.png" alt="OllamaCode GUI - General Settings" width="700">
-  <br>
-  <em>Settings - General configuration</em>
-</p>
-
-<p align="center">
-  <img src="docs/assets/gui_settings_model.png" alt="OllamaCode GUI - Model Settings" width="700">
-  <br>
-  <em>Settings - Model selection</em>
-</p>
-
-<p align="center">
-  <img src="docs/assets/gui_settings_mcp.png" alt="OllamaCode GUI - MCP Settings" width="700">
-  <br>
-  <em>Settings - MCP server configuration</em>
-</p>
-
 ---
 
 ## Screenshots
