@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-2.1.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-2.2.0-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey.svg" alt="Platform">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
   <img src="https://img.shields.io/badge/Ollama-compatible-orange.svg" alt="Ollama">
@@ -27,7 +27,16 @@
 
 ---
 
-## What's New in v2.1.0
+## What's New in v2.2.0
+
+- **🌐 Searcher Agent** - Web research with DuckDuckGo search and web spider
+- **🗄️ Database Agent** - Query SQLite, PostgreSQL, and MySQL databases
+- **🧠 Learner Agent** - RAG (Retrieval-Augmented Generation) with vector database
+- **Embedding Support** - Via Ollama models or local hash-based fallback
+- **Vector Database Backends** - SQLite, ChromaDB, FAISS support
+- **New Tools** - WebSearch, WebFetch, DBConnect, DBQuery, DBExecute, DBSchema, Learn, Remember, Forget
+
+### v2.1.0
 
 - **Native macOS GUI** - Brand new SwiftUI-based native app with full feature parity
 - **Model Selector** - Switch between Ollama models directly from the toolbar
@@ -75,16 +84,28 @@
 The AI assistant has access to these tools to help with your tasks:
 
 ```
-┌──────────┬────────────────────────────────────────────────────┐
-│ Tool     │ Description                                        │
-├──────────┼────────────────────────────────────────────────────┤
-│ Bash     │ Execute shell commands with safety controls        │
-│ Read     │ Read file contents                                 │
-│ Write    │ Create or overwrite files                          │
-│ Edit     │ Make targeted edits to existing files              │
-│ Glob     │ Find files by pattern (e.g., **/*.py)              │
-│ Grep     │ Search for text/patterns in files                  │
-└──────────┴────────────────────────────────────────────────────┘
+┌────────────┬────────────────────────────────────────────────────┐
+│ Tool       │ Description                                        │
+├────────────┼────────────────────────────────────────────────────┤
+│ Bash       │ Execute shell commands with safety controls        │
+│ Read       │ Read file contents                                 │
+│ Write      │ Create or overwrite files                          │
+│ Edit       │ Make targeted edits to existing files              │
+│ Glob       │ Find files by pattern (e.g., **/*.py)              │
+│ Grep       │ Search for text/patterns in files                  │
+├────────────┼────────────────────────────────────────────────────┤
+│ WebSearch  │ Search the web (DuckDuckGo/Brave)                  │
+│ WebFetch   │ Fetch and parse web pages                          │
+├────────────┼────────────────────────────────────────────────────┤
+│ DBConnect  │ Connect to SQLite/PostgreSQL/MySQL                 │
+│ DBQuery    │ Execute SELECT queries                             │
+│ DBExecute  │ Execute INSERT/UPDATE/DELETE (with confirmation)   │
+│ DBSchema   │ Show database schema                               │
+├────────────┼────────────────────────────────────────────────────┤
+│ Learn      │ Index content into vector database                 │
+│ Remember   │ Query vector database for context                  │
+│ Forget     │ Remove content from vector database                │
+└────────────┴────────────────────────────────────────────────────┘
 ```
 
 ### Specialized Agents
@@ -92,15 +113,18 @@ The AI assistant has access to these tools to help with your tasks:
 ollamaCode includes specialized agents that focus on specific tasks with curated tool access:
 
 ```
-┌────────────┬────────────────────────────────────┬─────────────────────────┐
-│ Agent      │ Description                        │ Available Tools         │
-├────────────┼────────────────────────────────────┼─────────────────────────┤
-│ 🔍 Explorer │ Read-only codebase exploration     │ Glob, Grep, Read        │
-│ 💻 Coder    │ Write and modify code              │ Read, Write, Edit, Glob │
-│ ▶️ Runner   │ Execute commands and tests         │ Bash, Read              │
-│ 📋 Planner  │ Plan tasks without executing       │ Glob, Grep, Read        │
-│ 🤖 General  │ Full assistant (default)           │ All tools               │
-└────────────┴────────────────────────────────────┴─────────────────────────┘
+┌─────────────┬─────────────────────────────────────┬──────────────────────────────────┐
+│ Agent       │ Description                         │ Available Tools                  │
+├─────────────┼─────────────────────────────────────┼──────────────────────────────────┤
+│ 🔍 Explorer │ Read-only codebase exploration      │ Glob, Grep, Read                 │
+│ 💻 Coder    │ Write and modify code               │ Read, Write, Edit, Glob          │
+│ ▶️ Runner   │ Execute commands and tests          │ Bash, Read                       │
+│ 📋 Planner  │ Plan tasks without executing        │ Glob, Grep, Read                 │
+│ 🌐 Searcher │ Web search and research             │ WebSearch, WebFetch, Read        │
+│ 🗄️ Database │ Query and analyze databases         │ DBConnect, DBQuery, DBSchema     │
+│ 🧠 Learner  │ RAG learning and retrieval          │ Learn, Remember, Forget, Read    │
+│ 🤖 General  │ Full assistant (default)            │ All tools                        │
+└─────────────┴─────────────────────────────────────┴──────────────────────────────────┘
 ```
 
 When you enter a prompt, ollamaCode analyzes your task and suggests the most appropriate agent:
@@ -369,6 +393,9 @@ Found 5 open issues:
 | `/code` | Switch to Coder agent (code changes) |
 | `/run` | Switch to Runner agent (commands) |
 | `/plan` | Switch to Planner agent (planning) |
+| `/search`, `/web` | Switch to Searcher agent (web research) |
+| `/db`, `/database` | Switch to Database agent (SQL queries) |
+| `/learn`, `/memory`, `/rag` | Switch to Learner agent (RAG knowledge) |
 | `/general` | Switch to General agent (all tools) |
 
 ## Configuration
@@ -383,6 +410,33 @@ Settings are stored in `~/.config/ollamacode/config.db` (SQLite) and include:
 - Safe mode settings
 - Auto-approve settings
 - MCP enabled state
+
+### New v2.2.0 Settings
+
+```
+# Search
+search_provider: duckduckgo | brave
+search_api_key: <optional API key for Brave>
+
+# Database
+db_type: sqlite | postgresql | mysql
+db_connection: <connection string or path>
+db_allow_write: false (safety default)
+
+# Vector Database
+vector_backend: sqlite | chroma | faiss
+vector_path: ~/.config/ollamacode/vectors/
+
+# Embeddings
+embedding_provider: ollama | local
+embedding_model: nomic-embed-text
+
+# RAG
+rag_enabled: true
+rag_auto_context: true
+rag_similarity_threshold: 0.7
+rag_max_chunks: 5
+```
 
 ### MCP Server Configuration
 
