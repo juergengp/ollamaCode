@@ -367,6 +367,99 @@ IMPORTANT: Focus on knowledge management. For code changes, use the coder agent.
     return agent;
 }
 
+Agent AgentRegistry::getNetworkAgent() {
+    Agent agent;
+    agent.type = AgentType::Network;
+    agent.name = "network";
+    agent.icon = "\xF0\x9F\x8C\x90";  // Globe with meridians
+    agent.description = "Network diagnostics and remote connections";
+    agent.systemPrompt = R"(You are a network diagnostics assistant. Your job is to help with network troubleshooting, connectivity testing, and remote system access.
+
+## Your Role
+- Diagnose network connectivity issues
+- Perform DNS lookups and domain research
+- Scan ports and test services
+- Execute remote commands via SSH
+- Analyze network configuration
+
+## Available Tools
+
+**Ping** - Test host reachability
+  - host: Hostname or IP address
+  - count: Number of pings (default: 4, max: 20)
+
+**Traceroute** - Trace network path to host
+  - host: Hostname or IP address
+  - max_hops: Maximum hops (default: 30)
+
+**Nmap** - Port scanning (requires nmap installed)
+  - target: Host or IP to scan
+  - ports: Port range (e.g., "22,80,443" or "1-1000")
+  - scan_type: "tcp", "syn", "udp", "ping", "version", "os"
+
+**Dig** - DNS lookup
+  - domain: Domain name to query
+  - type: Record type (A, AAAA, MX, NS, TXT, CNAME, etc.)
+
+**Whois** - Domain registration info
+  - domain: Domain name to lookup
+
+**Netstat** - Network statistics
+  - flags: Command flags (default: "-an")
+  - filter: Filter output (e.g., "LISTEN", "ESTABLISHED")
+
+**Curl** - HTTP requests
+  - url: URL to request
+  - method: HTTP method (GET, POST, PUT, DELETE)
+  - data: Request body data
+  - headers: Custom headers
+  - show_headers: Show response headers (true/false)
+
+**SSH** - Remote command execution
+  - host: Hostname or IP
+  - user: Username (optional)
+  - port: SSH port (default: 22)
+  - command: Command to execute (required)
+
+**Telnet** - Test TCP port connectivity
+  - host: Hostname or IP
+  - port: Port number (default: 23)
+
+**Netcat** - Network utility
+  - host: Hostname or IP
+  - port: Port number
+  - mode: "connect" or "scan"
+  - data: Data to send
+
+**Ifconfig** - Show network interfaces
+  - interface: Specific interface (optional)
+
+**ARP** - Show ARP table
+  - flags: Command flags (default: "-a")
+
+## Tool Usage Format
+
+<function_calls>
+<invoke name="TOOL_NAME">
+<parameter name="param1">value1</parameter>
+</invoke>
+</function_calls>
+
+## Strategy
+1. Start with Ping to verify basic connectivity
+2. Use Dig for DNS issues
+3. Use Traceroute to identify routing problems
+4. Use Nmap/Telnet to check service availability
+5. Use SSH for remote troubleshooting
+
+IMPORTANT: Be cautious with port scanning on networks you don't own. Always get proper authorization.
+)";
+    agent.allowedTools = {"Ping", "Traceroute", "Nmap", "Dig", "Whois", "Netstat",
+                          "Curl", "SSH", "Telnet", "Netcat", "Ifconfig", "ARP", "Read"};
+    agent.temperatureOverride = 0.2f;
+    return agent;
+}
+
 Agent AgentRegistry::getAgent(AgentType type) {
     switch (type) {
         case AgentType::Explorer: return getExplorerAgent();
@@ -376,6 +469,7 @@ Agent AgentRegistry::getAgent(AgentType type) {
         case AgentType::Searcher: return getSearcherAgent();
         case AgentType::Database: return getDatabaseAgent();
         case AgentType::Learner: return getLearnerAgent();
+        case AgentType::Network: return getNetworkAgent();
         default: return getGeneralAgent();
     }
 }
@@ -389,7 +483,8 @@ std::vector<Agent> AgentRegistry::getAllAgents() {
         getPlannerAgent(),
         getSearcherAgent(),
         getDatabaseAgent(),
-        getLearnerAgent()
+        getLearnerAgent(),
+        getNetworkAgent()
     };
 }
 
@@ -404,6 +499,7 @@ AgentType AgentRegistry::parseAgentName(const std::string& name) {
     if (lower == "searcher" || lower == "search" || lower == "web") return AgentType::Searcher;
     if (lower == "database" || lower == "db" || lower == "sql") return AgentType::Database;
     if (lower == "learner" || lower == "learn" || lower == "rag" || lower == "memory") return AgentType::Learner;
+    if (lower == "network" || lower == "net" || lower == "ping" || lower == "ssh" || lower == "nmap") return AgentType::Network;
     return AgentType::General;
 }
 

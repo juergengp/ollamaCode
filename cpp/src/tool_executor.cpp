@@ -1300,6 +1300,2017 @@ ToolResult ToolExecutor::executeForget(const ToolCall& tool_call) {
     return result;
 }
 
+// ============================================================================
+// Network Tools Implementation
+// ============================================================================
+
+ToolResult ToolExecutor::executePing(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto host_it = tool_call.parameters.find("host");
+    if (host_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'host' parameter";
+        return result;
+    }
+
+    std::string host = host_it->second;
+    int count = 4;
+
+    auto count_it = tool_call.parameters.find("count");
+    if (count_it != tool_call.parameters.end()) {
+        try {
+            count = std::stoi(count_it->second);
+            if (count > 20) count = 20;  // Limit max pings
+        } catch (...) {}
+    }
+
+    utils::terminal::printInfo("[Tool: Ping]");
+    std::cout << utils::terminal::CYAN << "Host: " << host << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Count: " << count << utils::terminal::RESET << "\n\n";
+
+    if (!requestConfirmation("Ping", "Ping " + host + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Pinging...");
+    std::string command = "ping -c " + std::to_string(count) + " " + host;
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Ping complete");
+    } else {
+        utils::terminal::printError("Ping failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeTraceroute(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto host_it = tool_call.parameters.find("host");
+    if (host_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'host' parameter";
+        return result;
+    }
+
+    std::string host = host_it->second;
+    int max_hops = 30;
+
+    auto hops_it = tool_call.parameters.find("max_hops");
+    if (hops_it != tool_call.parameters.end()) {
+        try {
+            max_hops = std::stoi(hops_it->second);
+            if (max_hops > 64) max_hops = 64;
+        } catch (...) {}
+    }
+
+    utils::terminal::printInfo("[Tool: Traceroute]");
+    std::cout << utils::terminal::CYAN << "Host: " << host << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Max hops: " << max_hops << utils::terminal::RESET << "\n\n";
+
+    if (!requestConfirmation("Traceroute", "Trace route to " + host + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Tracing route...");
+    std::string command = "traceroute -m " + std::to_string(max_hops) + " " + host;
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Traceroute complete");
+    } else {
+        utils::terminal::printError("Traceroute failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeNmap(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto target_it = tool_call.parameters.find("target");
+    if (target_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'target' parameter";
+        return result;
+    }
+
+    std::string target = target_it->second;
+    std::string ports = "";
+    std::string scan_type = "-sT";  // Default TCP connect scan
+
+    auto ports_it = tool_call.parameters.find("ports");
+    if (ports_it != tool_call.parameters.end()) {
+        ports = "-p " + ports_it->second;
+    }
+
+    auto type_it = tool_call.parameters.find("scan_type");
+    if (type_it != tool_call.parameters.end()) {
+        std::string st = type_it->second;
+        if (st == "syn" || st == "SYN") scan_type = "-sS";
+        else if (st == "udp" || st == "UDP") scan_type = "-sU";
+        else if (st == "ping") scan_type = "-sn";
+        else if (st == "version") scan_type = "-sV";
+        else if (st == "os") scan_type = "-O";
+    }
+
+    utils::terminal::printInfo("[Tool: Nmap]");
+    std::cout << utils::terminal::CYAN << "Target: " << target << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Scan type: " << scan_type << utils::terminal::RESET << "\n";
+    if (!ports.empty()) {
+        std::cout << utils::terminal::CYAN << "Ports: " << ports << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+
+    if (!requestConfirmation("Nmap", "Scan " + target + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Scanning (this may take a while)...");
+    std::string command = "nmap " + scan_type + " " + ports + " " + target;
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Scan complete");
+    } else {
+        if (result.output.find("command not found") != std::string::npos) {
+            result.error = "nmap not installed. Install with: brew install nmap";
+        }
+        utils::terminal::printError("Scan failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeDig(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto domain_it = tool_call.parameters.find("domain");
+    if (domain_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'domain' parameter";
+        return result;
+    }
+
+    std::string domain = domain_it->second;
+    std::string record_type = "A";
+
+    auto type_it = tool_call.parameters.find("type");
+    if (type_it != tool_call.parameters.end()) {
+        record_type = type_it->second;
+    }
+
+    utils::terminal::printInfo("[Tool: Dig]");
+    std::cout << utils::terminal::CYAN << "Domain: " << domain << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Record type: " << record_type << utils::terminal::RESET << "\n\n";
+
+    if (!requestConfirmation("Dig", "DNS lookup for " + domain + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Looking up...");
+    std::string command = "dig " + domain + " " + record_type + " +short";
+    result.output = executeCommand(command, result.exit_code);
+
+    // Also get full output
+    std::string full_command = "dig " + domain + " " + record_type;
+    int full_exit;
+    std::string full_output = executeCommand(full_command, full_exit);
+
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("DNS lookup complete");
+    } else {
+        utils::terminal::printError("DNS lookup failed");
+    }
+
+    std::cout << "\n=== Short Answer ===\n" << result.output << "\n=== Full Output ===\n" << full_output << "==============\n\n";
+    result.output = "Short: " + result.output + "\nFull:\n" + full_output;
+    return result;
+}
+
+ToolResult ToolExecutor::executeWhois(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto domain_it = tool_call.parameters.find("domain");
+    if (domain_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'domain' parameter";
+        return result;
+    }
+
+    std::string domain = domain_it->second;
+
+    utils::terminal::printInfo("[Tool: Whois]");
+    std::cout << utils::terminal::CYAN << "Domain: " << domain << utils::terminal::RESET << "\n\n";
+
+    if (!requestConfirmation("Whois", "WHOIS lookup for " + domain + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Looking up...");
+    std::string command = "whois " + domain;
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("WHOIS lookup complete");
+    } else {
+        utils::terminal::printError("WHOIS lookup failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeNetstat(const ToolCall& tool_call) {
+    ToolResult result;
+
+    std::string flags = "-an";
+
+    auto flags_it = tool_call.parameters.find("flags");
+    if (flags_it != tool_call.parameters.end()) {
+        flags = flags_it->second;
+    }
+
+    auto filter_it = tool_call.parameters.find("filter");
+    std::string filter = "";
+    if (filter_it != tool_call.parameters.end()) {
+        filter = filter_it->second;
+    }
+
+    utils::terminal::printInfo("[Tool: Netstat]");
+    std::cout << utils::terminal::CYAN << "Flags: " << flags << utils::terminal::RESET << "\n";
+    if (!filter.empty()) {
+        std::cout << utils::terminal::CYAN << "Filter: " << filter << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+
+    if (!requestConfirmation("Netstat", "Show network statistics?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Getting network stats...");
+    std::string command = "netstat " + flags;
+    if (!filter.empty()) {
+        command += " | grep -i '" + filter + "'";
+    }
+    command += " | head -100";
+
+    result.output = executeCommand(command, result.exit_code);
+    result.success = true;  // netstat always succeeds
+
+    utils::terminal::printSuccess("Netstat complete");
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeCurl(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto url_it = tool_call.parameters.find("url");
+    if (url_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'url' parameter";
+        return result;
+    }
+
+    std::string url = url_it->second;
+    std::string method = "GET";
+    std::string data = "";
+    std::string headers = "";
+    bool show_headers = false;
+
+    auto method_it = tool_call.parameters.find("method");
+    if (method_it != tool_call.parameters.end()) {
+        method = method_it->second;
+    }
+
+    auto data_it = tool_call.parameters.find("data");
+    if (data_it != tool_call.parameters.end()) {
+        data = data_it->second;
+    }
+
+    auto headers_it = tool_call.parameters.find("headers");
+    if (headers_it != tool_call.parameters.end()) {
+        headers = headers_it->second;
+    }
+
+    auto show_headers_it = tool_call.parameters.find("show_headers");
+    if (show_headers_it != tool_call.parameters.end()) {
+        show_headers = (show_headers_it->second == "true" || show_headers_it->second == "1");
+    }
+
+    utils::terminal::printInfo("[Tool: Curl]");
+    std::cout << utils::terminal::CYAN << "URL: " << url << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Method: " << method << utils::terminal::RESET << "\n";
+    if (!data.empty()) {
+        std::cout << utils::terminal::CYAN << "Data: " << data.substr(0, 100) << (data.length() > 100 ? "..." : "") << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+
+    if (!requestConfirmation("Curl", "Make HTTP request to " + url + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Making request...");
+    std::string command = "curl -s";
+    if (show_headers) command += " -i";
+    command += " -X " + method;
+    if (!data.empty()) {
+        command += " -d '" + data + "'";
+    }
+    if (!headers.empty()) {
+        command += " -H '" + headers + "'";
+    }
+    command += " '" + url + "'";
+
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Request complete");
+    } else {
+        utils::terminal::printError("Request failed");
+    }
+
+    // Truncate very long output
+    std::string display = result.output;
+    if (display.length() > 5000) {
+        display = display.substr(0, 5000) + "\n...(truncated)";
+    }
+    std::cout << "\n=== Output ===\n" << display << "\n==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeSSH(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto host_it = tool_call.parameters.find("host");
+    if (host_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'host' parameter";
+        return result;
+    }
+
+    std::string host = host_it->second;
+    std::string user = "";
+    std::string command_to_run = "";
+    int port = 22;
+
+    auto user_it = tool_call.parameters.find("user");
+    if (user_it != tool_call.parameters.end()) {
+        user = user_it->second;
+    }
+
+    auto cmd_it = tool_call.parameters.find("command");
+    if (cmd_it != tool_call.parameters.end()) {
+        command_to_run = cmd_it->second;
+    }
+
+    auto port_it = tool_call.parameters.find("port");
+    if (port_it != tool_call.parameters.end()) {
+        try {
+            port = std::stoi(port_it->second);
+        } catch (...) {}
+    }
+
+    utils::terminal::printInfo("[Tool: SSH]");
+    std::cout << utils::terminal::CYAN << "Host: " << host << utils::terminal::RESET << "\n";
+    if (!user.empty()) {
+        std::cout << utils::terminal::CYAN << "User: " << user << utils::terminal::RESET << "\n";
+    }
+    std::cout << utils::terminal::CYAN << "Port: " << port << utils::terminal::RESET << "\n";
+    if (!command_to_run.empty()) {
+        std::cout << utils::terminal::CYAN << "Command: " << command_to_run << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+
+    if (command_to_run.empty()) {
+        result.success = false;
+        result.error = "Interactive SSH sessions not supported. Please provide a command to execute.";
+        utils::terminal::printError(result.error);
+        return result;
+    }
+
+    if (!requestConfirmation("SSH", "Execute command on " + host + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Connecting...");
+    std::string ssh_cmd = "ssh -o BatchMode=yes -o ConnectTimeout=10 -p " + std::to_string(port);
+    if (!user.empty()) {
+        ssh_cmd += " " + user + "@" + host;
+    } else {
+        ssh_cmd += " " + host;
+    }
+    ssh_cmd += " '" + command_to_run + "'";
+
+    result.output = executeCommand(ssh_cmd, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("SSH command complete");
+    } else {
+        utils::terminal::printError("SSH command failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeTelnet(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto host_it = tool_call.parameters.find("host");
+    if (host_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'host' parameter";
+        return result;
+    }
+
+    std::string host = host_it->second;
+    int port = 23;
+
+    auto port_it = tool_call.parameters.find("port");
+    if (port_it != tool_call.parameters.end()) {
+        try {
+            port = std::stoi(port_it->second);
+        } catch (...) {}
+    }
+
+    utils::terminal::printInfo("[Tool: Telnet]");
+    std::cout << utils::terminal::CYAN << "Host: " << host << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Port: " << port << utils::terminal::RESET << "\n\n";
+
+    if (!requestConfirmation("Telnet", "Test connection to " + host + ":" + std::to_string(port) + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Testing connection...");
+    // Use nc for non-interactive telnet testing
+    std::string command = "nc -z -v -w 5 " + host + " " + std::to_string(port);
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Connection successful - port is open");
+        result.output = "Port " + std::to_string(port) + " on " + host + " is open\n" + result.output;
+    } else {
+        utils::terminal::printError("Connection failed - port may be closed or filtered");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeNetcat(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto host_it = tool_call.parameters.find("host");
+    if (host_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'host' parameter";
+        return result;
+    }
+
+    std::string host = host_it->second;
+    int port = 0;
+    std::string mode = "connect";
+    std::string data = "";
+
+    auto port_it = tool_call.parameters.find("port");
+    if (port_it != tool_call.parameters.end()) {
+        try {
+            port = std::stoi(port_it->second);
+        } catch (...) {}
+    }
+
+    auto mode_it = tool_call.parameters.find("mode");
+    if (mode_it != tool_call.parameters.end()) {
+        mode = mode_it->second;
+    }
+
+    auto data_it = tool_call.parameters.find("data");
+    if (data_it != tool_call.parameters.end()) {
+        data = data_it->second;
+    }
+
+    if (port == 0) {
+        result.success = false;
+        result.error = "Missing 'port' parameter";
+        return result;
+    }
+
+    utils::terminal::printInfo("[Tool: Netcat]");
+    std::cout << utils::terminal::CYAN << "Host: " << host << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Port: " << port << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Mode: " << mode << utils::terminal::RESET << "\n\n";
+
+    if (!requestConfirmation("Netcat", "Connect to " + host + ":" + std::to_string(port) + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Connecting...");
+    std::string command;
+    if (mode == "scan") {
+        command = "nc -z -v -w 2 " + host + " " + std::to_string(port);
+    } else if (!data.empty()) {
+        command = "echo '" + data + "' | nc -w 5 " + host + " " + std::to_string(port);
+    } else {
+        command = "nc -z -v -w 5 " + host + " " + std::to_string(port);
+    }
+
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Netcat complete");
+    } else {
+        utils::terminal::printError("Netcat failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeIfconfig(const ToolCall& tool_call) {
+    ToolResult result;
+
+    std::string interface = "";
+    auto iface_it = tool_call.parameters.find("interface");
+    if (iface_it != tool_call.parameters.end()) {
+        interface = iface_it->second;
+    }
+
+    utils::terminal::printInfo("[Tool: Ifconfig]");
+    if (!interface.empty()) {
+        std::cout << utils::terminal::CYAN << "Interface: " << interface << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+
+    if (!requestConfirmation("Ifconfig", "Show network interfaces?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Getting interface info...");
+    std::string command = "ifconfig " + interface;
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Ifconfig complete");
+    } else {
+        utils::terminal::printError("Ifconfig failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeArp(const ToolCall& tool_call) {
+    ToolResult result;
+
+    std::string flags = "-a";
+    auto flags_it = tool_call.parameters.find("flags");
+    if (flags_it != tool_call.parameters.end()) {
+        flags = flags_it->second;
+    }
+
+    utils::terminal::printInfo("[Tool: ARP]");
+    std::cout << utils::terminal::CYAN << "Flags: " << flags << utils::terminal::RESET << "\n\n";
+
+    if (!requestConfirmation("ARP", "Show ARP table?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Getting ARP table...");
+    std::string command = "arp " + flags;
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("ARP complete");
+    } else {
+        utils::terminal::printError("ARP failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+// ============================================================================
+// Package Manager Tools Implementation
+// ============================================================================
+
+ToolResult ToolExecutor::executeBrew(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto action_it = tool_call.parameters.find("action");
+    if (action_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'action' parameter (install, uninstall, update, upgrade, search, info, list)";
+        return result;
+    }
+
+    std::string action = action_it->second;
+    std::string package = "";
+
+    auto pkg_it = tool_call.parameters.find("package");
+    if (pkg_it != tool_call.parameters.end()) {
+        package = pkg_it->second;
+    }
+
+    // Validate action
+    std::vector<std::string> valid_actions = {"install", "uninstall", "remove", "update", "upgrade", "search", "info", "list", "outdated", "cleanup"};
+    bool valid = false;
+    for (const auto& a : valid_actions) {
+        if (action == a) { valid = true; break; }
+    }
+    if (!valid) {
+        result.success = false;
+        result.error = "Invalid action. Use: install, uninstall, update, upgrade, search, info, list, outdated, cleanup";
+        return result;
+    }
+
+    // Some actions require a package name
+    if ((action == "install" || action == "uninstall" || action == "remove" || action == "info") && package.empty()) {
+        result.success = false;
+        result.error = "Action '" + action + "' requires a package name";
+        return result;
+    }
+
+    utils::terminal::printInfo("[Tool: Brew]");
+    std::cout << utils::terminal::CYAN << "Action: " << action << utils::terminal::RESET << "\n";
+    if (!package.empty()) {
+        std::cout << utils::terminal::CYAN << "Package: " << package << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+
+    std::string desc = "brew " + action + (package.empty() ? "" : " " + package);
+    if (!requestConfirmation("Brew", desc + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Running brew...");
+    std::string command = "brew " + action;
+    if (!package.empty()) command += " " + package;
+
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Brew command complete");
+    } else {
+        utils::terminal::printError("Brew command failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executePip(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto action_it = tool_call.parameters.find("action");
+    if (action_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'action' parameter (install, uninstall, list, show, search, freeze)";
+        return result;
+    }
+
+    std::string action = action_it->second;
+    std::string package = "";
+    bool use_pip3 = true;
+
+    auto pkg_it = tool_call.parameters.find("package");
+    if (pkg_it != tool_call.parameters.end()) {
+        package = pkg_it->second;
+    }
+
+    auto pip3_it = tool_call.parameters.find("pip3");
+    if (pip3_it != tool_call.parameters.end()) {
+        use_pip3 = (pip3_it->second != "false" && pip3_it->second != "0");
+    }
+
+    std::vector<std::string> valid_actions = {"install", "uninstall", "list", "show", "search", "freeze", "upgrade"};
+    bool valid = false;
+    for (const auto& a : valid_actions) {
+        if (action == a) { valid = true; break; }
+    }
+    if (!valid) {
+        result.success = false;
+        result.error = "Invalid action. Use: install, uninstall, list, show, search, freeze, upgrade";
+        return result;
+    }
+
+    if ((action == "install" || action == "uninstall" || action == "show" || action == "upgrade") && package.empty()) {
+        result.success = false;
+        result.error = "Action '" + action + "' requires a package name";
+        return result;
+    }
+
+    utils::terminal::printInfo("[Tool: Pip]");
+    std::cout << utils::terminal::CYAN << "Action: " << action << utils::terminal::RESET << "\n";
+    if (!package.empty()) {
+        std::cout << utils::terminal::CYAN << "Package: " << package << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+
+    std::string pip_cmd = use_pip3 ? "pip3" : "pip";
+    std::string desc = pip_cmd + " " + action + (package.empty() ? "" : " " + package);
+    if (!requestConfirmation("Pip", desc + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Running pip...");
+    std::string command = pip_cmd + " " + action;
+    if (action == "upgrade") {
+        command = pip_cmd + " install --upgrade " + package;
+    } else if (!package.empty()) {
+        command += " " + package;
+    }
+
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Pip command complete");
+    } else {
+        utils::terminal::printError("Pip command failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeNpm(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto action_it = tool_call.parameters.find("action");
+    if (action_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'action' parameter (install, uninstall, update, list, search, info, init, run)";
+        return result;
+    }
+
+    std::string action = action_it->second;
+    std::string package = "";
+    bool global = false;
+
+    auto pkg_it = tool_call.parameters.find("package");
+    if (pkg_it != tool_call.parameters.end()) {
+        package = pkg_it->second;
+    }
+
+    auto global_it = tool_call.parameters.find("global");
+    if (global_it != tool_call.parameters.end()) {
+        global = (global_it->second == "true" || global_it->second == "1");
+    }
+
+    std::vector<std::string> valid_actions = {"install", "uninstall", "update", "list", "search", "info", "init", "run", "outdated", "audit"};
+    bool valid = false;
+    for (const auto& a : valid_actions) {
+        if (action == a) { valid = true; break; }
+    }
+    if (!valid) {
+        result.success = false;
+        result.error = "Invalid action. Use: install, uninstall, update, list, search, info, init, run, outdated, audit";
+        return result;
+    }
+
+    utils::terminal::printInfo("[Tool: Npm]");
+    std::cout << utils::terminal::CYAN << "Action: " << action << utils::terminal::RESET << "\n";
+    if (!package.empty()) {
+        std::cout << utils::terminal::CYAN << "Package: " << package << utils::terminal::RESET << "\n";
+    }
+    if (global) {
+        std::cout << utils::terminal::CYAN << "Global: yes" << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+
+    std::string desc = "npm " + action + (package.empty() ? "" : " " + package) + (global ? " (global)" : "");
+    if (!requestConfirmation("Npm", desc + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Running npm...");
+    std::string command = "npm " + action;
+    if (global) command += " -g";
+    if (!package.empty()) command += " " + package;
+
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Npm command complete");
+    } else {
+        utils::terminal::printError("Npm command failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeApt(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto action_it = tool_call.parameters.find("action");
+    if (action_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'action' parameter (install, remove, update, upgrade, search, show, list)";
+        return result;
+    }
+
+    std::string action = action_it->second;
+    std::string package = "";
+
+    auto pkg_it = tool_call.parameters.find("package");
+    if (pkg_it != tool_call.parameters.end()) {
+        package = pkg_it->second;
+    }
+
+    std::vector<std::string> valid_actions = {"install", "remove", "purge", "update", "upgrade", "full-upgrade", "search", "show", "list", "autoremove"};
+    bool valid = false;
+    for (const auto& a : valid_actions) {
+        if (action == a) { valid = true; break; }
+    }
+    if (!valid) {
+        result.success = false;
+        result.error = "Invalid action. Use: install, remove, purge, update, upgrade, full-upgrade, search, show, list, autoremove";
+        return result;
+    }
+
+    if ((action == "install" || action == "remove" || action == "purge" || action == "show") && package.empty()) {
+        result.success = false;
+        result.error = "Action '" + action + "' requires a package name";
+        return result;
+    }
+
+    utils::terminal::printInfo("[Tool: Apt]");
+    std::cout << utils::terminal::CYAN << "Action: " << action << utils::terminal::RESET << "\n";
+    if (!package.empty()) {
+        std::cout << utils::terminal::CYAN << "Package: " << package << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+
+    std::string desc = "apt " + action + (package.empty() ? "" : " " + package);
+    if (!requestConfirmation("Apt", desc + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Running apt...");
+    std::string command = "sudo apt " + action + " -y";
+    if (!package.empty()) command += " " + package;
+
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Apt command complete");
+    } else {
+        utils::terminal::printError("Apt command failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeDnf(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto action_it = tool_call.parameters.find("action");
+    if (action_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'action' parameter (install, remove, update, upgrade, search, info, list)";
+        return result;
+    }
+
+    std::string action = action_it->second;
+    std::string package = "";
+
+    auto pkg_it = tool_call.parameters.find("package");
+    if (pkg_it != tool_call.parameters.end()) {
+        package = pkg_it->second;
+    }
+
+    std::vector<std::string> valid_actions = {"install", "remove", "update", "upgrade", "search", "info", "list", "check-update", "autoremove", "clean"};
+    bool valid = false;
+    for (const auto& a : valid_actions) {
+        if (action == a) { valid = true; break; }
+    }
+    if (!valid) {
+        result.success = false;
+        result.error = "Invalid action. Use: install, remove, update, upgrade, search, info, list, check-update, autoremove, clean";
+        return result;
+    }
+
+    if ((action == "install" || action == "remove" || action == "info") && package.empty()) {
+        result.success = false;
+        result.error = "Action '" + action + "' requires a package name";
+        return result;
+    }
+
+    utils::terminal::printInfo("[Tool: Dnf]");
+    std::cout << utils::terminal::CYAN << "Action: " << action << utils::terminal::RESET << "\n";
+    if (!package.empty()) {
+        std::cout << utils::terminal::CYAN << "Package: " << package << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+
+    std::string desc = "dnf " + action + (package.empty() ? "" : " " + package);
+    if (!requestConfirmation("Dnf", desc + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Running dnf...");
+    std::string command = "sudo dnf " + action + " -y";
+    if (!package.empty()) command += " " + package;
+
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Dnf command complete");
+    } else {
+        utils::terminal::printError("Dnf command failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeYum(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto action_it = tool_call.parameters.find("action");
+    if (action_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'action' parameter (install, remove, update, search, info, list)";
+        return result;
+    }
+
+    std::string action = action_it->second;
+    std::string package = "";
+
+    auto pkg_it = tool_call.parameters.find("package");
+    if (pkg_it != tool_call.parameters.end()) {
+        package = pkg_it->second;
+    }
+
+    std::vector<std::string> valid_actions = {"install", "remove", "update", "search", "info", "list", "check-update", "clean"};
+    bool valid = false;
+    for (const auto& a : valid_actions) {
+        if (action == a) { valid = true; break; }
+    }
+    if (!valid) {
+        result.success = false;
+        result.error = "Invalid action. Use: install, remove, update, search, info, list, check-update, clean";
+        return result;
+    }
+
+    if ((action == "install" || action == "remove" || action == "info") && package.empty()) {
+        result.success = false;
+        result.error = "Action '" + action + "' requires a package name";
+        return result;
+    }
+
+    utils::terminal::printInfo("[Tool: Yum]");
+    std::cout << utils::terminal::CYAN << "Action: " << action << utils::terminal::RESET << "\n";
+    if (!package.empty()) {
+        std::cout << utils::terminal::CYAN << "Package: " << package << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+
+    std::string desc = "yum " + action + (package.empty() ? "" : " " + package);
+    if (!requestConfirmation("Yum", desc + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Running yum...");
+    std::string command = "sudo yum " + action + " -y";
+    if (!package.empty()) command += " " + package;
+
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Yum command complete");
+    } else {
+        utils::terminal::printError("Yum command failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executePacman(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto action_it = tool_call.parameters.find("action");
+    if (action_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'action' parameter (install, remove, update, upgrade, search, info, list)";
+        return result;
+    }
+
+    std::string action = action_it->second;
+    std::string package = "";
+
+    auto pkg_it = tool_call.parameters.find("package");
+    if (pkg_it != tool_call.parameters.end()) {
+        package = pkg_it->second;
+    }
+
+    utils::terminal::printInfo("[Tool: Pacman]");
+    std::cout << utils::terminal::CYAN << "Action: " << action << utils::terminal::RESET << "\n";
+    if (!package.empty()) {
+        std::cout << utils::terminal::CYAN << "Package: " << package << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+
+    // Map actions to pacman flags
+    std::string command;
+    if (action == "install") {
+        if (package.empty()) {
+            result.success = false;
+            result.error = "Install requires a package name";
+            return result;
+        }
+        command = "sudo pacman -S --noconfirm " + package;
+    } else if (action == "remove") {
+        if (package.empty()) {
+            result.success = false;
+            result.error = "Remove requires a package name";
+            return result;
+        }
+        command = "sudo pacman -R --noconfirm " + package;
+    } else if (action == "update" || action == "upgrade") {
+        command = "sudo pacman -Syu --noconfirm";
+    } else if (action == "search") {
+        command = "pacman -Ss " + package;
+    } else if (action == "info") {
+        command = "pacman -Si " + package;
+    } else if (action == "list") {
+        command = "pacman -Q";
+    } else {
+        result.success = false;
+        result.error = "Invalid action. Use: install, remove, update, upgrade, search, info, list";
+        return result;
+    }
+
+    std::string desc = "pacman " + action + (package.empty() ? "" : " " + package);
+    if (!requestConfirmation("Pacman", desc + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Running pacman...");
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Pacman command complete");
+    } else {
+        utils::terminal::printError("Pacman command failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeZypper(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto action_it = tool_call.parameters.find("action");
+    if (action_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'action' parameter (install, remove, update, search, info, list)";
+        return result;
+    }
+
+    std::string action = action_it->second;
+    std::string package = "";
+
+    auto pkg_it = tool_call.parameters.find("package");
+    if (pkg_it != tool_call.parameters.end()) {
+        package = pkg_it->second;
+    }
+
+    std::vector<std::string> valid_actions = {"install", "remove", "update", "refresh", "search", "info", "list-updates", "dist-upgrade"};
+    bool valid = false;
+    for (const auto& a : valid_actions) {
+        if (action == a) { valid = true; break; }
+    }
+    if (!valid) {
+        result.success = false;
+        result.error = "Invalid action. Use: install, remove, update, refresh, search, info, list-updates, dist-upgrade";
+        return result;
+    }
+
+    if ((action == "install" || action == "remove" || action == "info") && package.empty()) {
+        result.success = false;
+        result.error = "Action '" + action + "' requires a package name";
+        return result;
+    }
+
+    utils::terminal::printInfo("[Tool: Zypper]");
+    std::cout << utils::terminal::CYAN << "Action: " << action << utils::terminal::RESET << "\n";
+    if (!package.empty()) {
+        std::cout << utils::terminal::CYAN << "Package: " << package << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+
+    std::string desc = "zypper " + action + (package.empty() ? "" : " " + package);
+    if (!requestConfirmation("Zypper", desc + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Running zypper...");
+    std::string command = "sudo zypper --non-interactive " + action;
+    if (!package.empty()) command += " " + package;
+
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Zypper command complete");
+    } else {
+        utils::terminal::printError("Zypper command failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+// ============================================================================
+// File Operation Tools Implementation
+// ============================================================================
+
+ToolResult ToolExecutor::executeTar(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto action_it = tool_call.parameters.find("action");
+    if (action_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'action' parameter (create, extract, list)";
+        return result;
+    }
+
+    std::string action = action_it->second;
+    std::string archive = "";
+    std::string files = "";
+    std::string compress = "auto";
+
+    auto archive_it = tool_call.parameters.find("archive");
+    if (archive_it != tool_call.parameters.end()) {
+        archive = archive_it->second;
+    }
+
+    auto files_it = tool_call.parameters.find("files");
+    if (files_it != tool_call.parameters.end()) {
+        files = files_it->second;
+    }
+
+    auto compress_it = tool_call.parameters.find("compress");
+    if (compress_it != tool_call.parameters.end()) {
+        compress = compress_it->second;
+    }
+
+    if (archive.empty()) {
+        result.success = false;
+        result.error = "Missing 'archive' parameter";
+        return result;
+    }
+
+    utils::terminal::printInfo("[Tool: Tar]");
+    std::cout << utils::terminal::CYAN << "Action: " << action << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Archive: " << archive << utils::terminal::RESET << "\n";
+    if (!files.empty()) {
+        std::cout << utils::terminal::CYAN << "Files: " << files << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+
+    std::string command;
+    std::string flags;
+
+    // Determine compression from extension or parameter
+    if (compress == "auto") {
+        if (archive.find(".gz") != std::string::npos || archive.find(".tgz") != std::string::npos) compress = "gzip";
+        else if (archive.find(".bz2") != std::string::npos) compress = "bzip2";
+        else if (archive.find(".xz") != std::string::npos) compress = "xz";
+        else compress = "none";
+    }
+
+    if (compress == "gzip") flags = "z";
+    else if (compress == "bzip2") flags = "j";
+    else if (compress == "xz") flags = "J";
+
+    if (action == "create") {
+        if (files.empty()) {
+            result.success = false;
+            result.error = "Create requires 'files' parameter";
+            return result;
+        }
+        command = "tar -cv" + flags + "f " + archive + " " + files;
+    } else if (action == "extract") {
+        command = "tar -xv" + flags + "f " + archive;
+    } else if (action == "list") {
+        command = "tar -tv" + flags + "f " + archive;
+    } else {
+        result.success = false;
+        result.error = "Invalid action. Use: create, extract, list";
+        return result;
+    }
+
+    if (!requestConfirmation("Tar", command + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Running tar...");
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Tar command complete");
+    } else {
+        utils::terminal::printError("Tar command failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeZip(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto archive_it = tool_call.parameters.find("archive");
+    auto files_it = tool_call.parameters.find("files");
+
+    if (archive_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'archive' parameter";
+        return result;
+    }
+
+    std::string archive = archive_it->second;
+    std::string files = files_it != tool_call.parameters.end() ? files_it->second : "";
+    bool recursive = true;
+
+    auto recursive_it = tool_call.parameters.find("recursive");
+    if (recursive_it != tool_call.parameters.end()) {
+        recursive = (recursive_it->second != "false" && recursive_it->second != "0");
+    }
+
+    utils::terminal::printInfo("[Tool: Zip]");
+    std::cout << utils::terminal::CYAN << "Archive: " << archive << utils::terminal::RESET << "\n";
+    if (!files.empty()) {
+        std::cout << utils::terminal::CYAN << "Files: " << files << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+
+    if (files.empty()) {
+        result.success = false;
+        result.error = "Missing 'files' parameter";
+        return result;
+    }
+
+    std::string command = "zip";
+    if (recursive) command += " -r";
+    command += " " + archive + " " + files;
+
+    if (!requestConfirmation("Zip", "Create " + archive + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Creating zip...");
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Zip complete");
+    } else {
+        utils::terminal::printError("Zip failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeUnzip(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto archive_it = tool_call.parameters.find("archive");
+    if (archive_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'archive' parameter";
+        return result;
+    }
+
+    std::string archive = archive_it->second;
+    std::string dest = "";
+    bool list_only = false;
+
+    auto dest_it = tool_call.parameters.find("destination");
+    if (dest_it != tool_call.parameters.end()) {
+        dest = dest_it->second;
+    }
+
+    auto list_it = tool_call.parameters.find("list");
+    if (list_it != tool_call.parameters.end()) {
+        list_only = (list_it->second == "true" || list_it->second == "1");
+    }
+
+    utils::terminal::printInfo("[Tool: Unzip]");
+    std::cout << utils::terminal::CYAN << "Archive: " << archive << utils::terminal::RESET << "\n";
+    if (!dest.empty()) {
+        std::cout << utils::terminal::CYAN << "Destination: " << dest << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+
+    std::string command;
+    if (list_only) {
+        command = "unzip -l " + archive;
+    } else {
+        command = "unzip -o " + archive;
+        if (!dest.empty()) command += " -d " + dest;
+    }
+
+    if (!requestConfirmation("Unzip", list_only ? "List " + archive + "?" : "Extract " + archive + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo(list_only ? "Listing..." : "Extracting...");
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Unzip complete");
+    } else {
+        utils::terminal::printError("Unzip failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeGzip(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto file_it = tool_call.parameters.find("file");
+    if (file_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'file' parameter";
+        return result;
+    }
+
+    std::string file = file_it->second;
+    bool decompress = false;
+    bool keep = false;
+
+    auto decompress_it = tool_call.parameters.find("decompress");
+    if (decompress_it != tool_call.parameters.end()) {
+        decompress = (decompress_it->second == "true" || decompress_it->second == "1");
+    }
+
+    auto keep_it = tool_call.parameters.find("keep");
+    if (keep_it != tool_call.parameters.end()) {
+        keep = (keep_it->second == "true" || keep_it->second == "1");
+    }
+
+    utils::terminal::printInfo("[Tool: Gzip]");
+    std::cout << utils::terminal::CYAN << "File: " << file << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Mode: " << (decompress ? "decompress" : "compress") << utils::terminal::RESET << "\n";
+    std::cout << "\n";
+
+    std::string command = decompress ? "gunzip" : "gzip";
+    if (keep) command += " -k";
+    command += " " + file;
+
+    if (!requestConfirmation("Gzip", (decompress ? "Decompress " : "Compress ") + file + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo(decompress ? "Decompressing..." : "Compressing...");
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Gzip complete");
+    } else {
+        utils::terminal::printError("Gzip failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeRsync(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto source_it = tool_call.parameters.find("source");
+    auto dest_it = tool_call.parameters.find("destination");
+
+    if (source_it == tool_call.parameters.end() || dest_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'source' or 'destination' parameter";
+        return result;
+    }
+
+    std::string source = source_it->second;
+    std::string dest = dest_it->second;
+    std::string flags = "-avz";
+    bool delete_extra = false;
+
+    auto flags_it = tool_call.parameters.find("flags");
+    if (flags_it != tool_call.parameters.end()) {
+        flags = flags_it->second;
+    }
+
+    auto delete_it = tool_call.parameters.find("delete");
+    if (delete_it != tool_call.parameters.end()) {
+        delete_extra = (delete_it->second == "true" || delete_it->second == "1");
+    }
+
+    utils::terminal::printInfo("[Tool: Rsync]");
+    std::cout << utils::terminal::CYAN << "Source: " << source << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Destination: " << dest << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Flags: " << flags << utils::terminal::RESET << "\n";
+    std::cout << "\n";
+
+    std::string command = "rsync " + flags;
+    if (delete_extra) command += " --delete";
+    command += " " + source + " " + dest;
+
+    if (!requestConfirmation("Rsync", "Sync " + source + " to " + dest + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Syncing...");
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Rsync complete");
+    } else {
+        utils::terminal::printError("Rsync failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeScp(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto source_it = tool_call.parameters.find("source");
+    auto dest_it = tool_call.parameters.find("destination");
+
+    if (source_it == tool_call.parameters.end() || dest_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'source' or 'destination' parameter";
+        return result;
+    }
+
+    std::string source = source_it->second;
+    std::string dest = dest_it->second;
+    bool recursive = false;
+    int port = 22;
+
+    auto recursive_it = tool_call.parameters.find("recursive");
+    if (recursive_it != tool_call.parameters.end()) {
+        recursive = (recursive_it->second == "true" || recursive_it->second == "1");
+    }
+
+    auto port_it = tool_call.parameters.find("port");
+    if (port_it != tool_call.parameters.end()) {
+        try {
+            port = std::stoi(port_it->second);
+        } catch (...) {}
+    }
+
+    utils::terminal::printInfo("[Tool: Scp]");
+    std::cout << utils::terminal::CYAN << "Source: " << source << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Destination: " << dest << utils::terminal::RESET << "\n";
+    std::cout << "\n";
+
+    std::string command = "scp";
+    if (recursive) command += " -r";
+    if (port != 22) command += " -P " + std::to_string(port);
+    command += " " + source + " " + dest;
+
+    if (!requestConfirmation("Scp", "Copy " + source + " to " + dest + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Copying...");
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Scp complete");
+    } else {
+        utils::terminal::printError("Scp failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeCp(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto source_it = tool_call.parameters.find("source");
+    auto dest_it = tool_call.parameters.find("destination");
+
+    if (source_it == tool_call.parameters.end() || dest_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'source' or 'destination' parameter";
+        return result;
+    }
+
+    std::string source = source_it->second;
+    std::string dest = dest_it->second;
+    bool recursive = false;
+
+    auto recursive_it = tool_call.parameters.find("recursive");
+    if (recursive_it != tool_call.parameters.end()) {
+        recursive = (recursive_it->second == "true" || recursive_it->second == "1");
+    }
+
+    utils::terminal::printInfo("[Tool: Cp]");
+    std::cout << utils::terminal::CYAN << "Source: " << source << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Destination: " << dest << utils::terminal::RESET << "\n";
+    std::cout << "\n";
+
+    std::string command = "cp -v";
+    if (recursive) command += " -r";
+    command += " " + source + " " + dest;
+
+    if (!requestConfirmation("Cp", "Copy " + source + " to " + dest + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Copying...");
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Copy complete");
+    } else {
+        utils::terminal::printError("Copy failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeMv(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto source_it = tool_call.parameters.find("source");
+    auto dest_it = tool_call.parameters.find("destination");
+
+    if (source_it == tool_call.parameters.end() || dest_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'source' or 'destination' parameter";
+        return result;
+    }
+
+    std::string source = source_it->second;
+    std::string dest = dest_it->second;
+
+    utils::terminal::printInfo("[Tool: Mv]");
+    std::cout << utils::terminal::CYAN << "Source: " << source << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Destination: " << dest << utils::terminal::RESET << "\n";
+    std::cout << "\n";
+
+    std::string command = "mv -v " + source + " " + dest;
+
+    if (!requestConfirmation("Mv", "Move " + source + " to " + dest + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Moving...");
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Move complete");
+    } else {
+        utils::terminal::printError("Move failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeRm(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto path_it = tool_call.parameters.find("path");
+    if (path_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'path' parameter";
+        return result;
+    }
+
+    std::string path = path_it->second;
+    bool recursive = false;
+    bool force = false;
+
+    auto recursive_it = tool_call.parameters.find("recursive");
+    if (recursive_it != tool_call.parameters.end()) {
+        recursive = (recursive_it->second == "true" || recursive_it->second == "1");
+    }
+
+    auto force_it = tool_call.parameters.find("force");
+    if (force_it != tool_call.parameters.end()) {
+        force = (force_it->second == "true" || force_it->second == "1");
+    }
+
+    utils::terminal::printInfo("[Tool: Rm]");
+    std::cout << utils::terminal::YELLOW << "WARNING: This will delete files!" << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Path: " << path << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Recursive: " << (recursive ? "yes" : "no") << utils::terminal::RESET << "\n";
+    std::cout << "\n";
+
+    std::string command = "rm -v";
+    if (recursive) command += " -r";
+    if (force) command += " -f";
+    command += " " + path;
+
+    if (!requestConfirmation("Rm", "DELETE " + path + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Deleting...");
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Delete complete");
+    } else {
+        utils::terminal::printError("Delete failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeMkdir(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto path_it = tool_call.parameters.find("path");
+    if (path_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'path' parameter";
+        return result;
+    }
+
+    std::string path = path_it->second;
+    bool parents = true;
+
+    auto parents_it = tool_call.parameters.find("parents");
+    if (parents_it != tool_call.parameters.end()) {
+        parents = (parents_it->second != "false" && parents_it->second != "0");
+    }
+
+    utils::terminal::printInfo("[Tool: Mkdir]");
+    std::cout << utils::terminal::CYAN << "Path: " << path << utils::terminal::RESET << "\n";
+    std::cout << "\n";
+
+    std::string command = "mkdir -v";
+    if (parents) command += " -p";
+    command += " " + path;
+
+    if (!requestConfirmation("Mkdir", "Create directory " + path + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Creating directory...");
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Directory created");
+    } else {
+        utils::terminal::printError("Failed to create directory");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeChmod(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto path_it = tool_call.parameters.find("path");
+    auto mode_it = tool_call.parameters.find("mode");
+
+    if (path_it == tool_call.parameters.end() || mode_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'path' or 'mode' parameter";
+        return result;
+    }
+
+    std::string path = path_it->second;
+    std::string mode = mode_it->second;
+    bool recursive = false;
+
+    auto recursive_it = tool_call.parameters.find("recursive");
+    if (recursive_it != tool_call.parameters.end()) {
+        recursive = (recursive_it->second == "true" || recursive_it->second == "1");
+    }
+
+    utils::terminal::printInfo("[Tool: Chmod]");
+    std::cout << utils::terminal::CYAN << "Path: " << path << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Mode: " << mode << utils::terminal::RESET << "\n";
+    std::cout << "\n";
+
+    std::string command = "chmod -v";
+    if (recursive) command += " -R";
+    command += " " + mode + " " + path;
+
+    if (!requestConfirmation("Chmod", "Change permissions of " + path + " to " + mode + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Changing permissions...");
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Permissions changed");
+    } else {
+        utils::terminal::printError("Failed to change permissions");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeChown(const ToolCall& tool_call) {
+    ToolResult result;
+
+    auto path_it = tool_call.parameters.find("path");
+    auto owner_it = tool_call.parameters.find("owner");
+
+    if (path_it == tool_call.parameters.end() || owner_it == tool_call.parameters.end()) {
+        result.success = false;
+        result.error = "Missing 'path' or 'owner' parameter";
+        return result;
+    }
+
+    std::string path = path_it->second;
+    std::string owner = owner_it->second;
+    bool recursive = false;
+
+    auto recursive_it = tool_call.parameters.find("recursive");
+    if (recursive_it != tool_call.parameters.end()) {
+        recursive = (recursive_it->second == "true" || recursive_it->second == "1");
+    }
+
+    utils::terminal::printInfo("[Tool: Chown]");
+    std::cout << utils::terminal::CYAN << "Path: " << path << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::CYAN << "Owner: " << owner << utils::terminal::RESET << "\n";
+    std::cout << "\n";
+
+    std::string command = "sudo chown -v";
+    if (recursive) command += " -R";
+    command += " " + owner + " " + path;
+
+    if (!requestConfirmation("Chown", "Change owner of " + path + " to " + owner + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Changing ownership...");
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Ownership changed");
+    } else {
+        utils::terminal::printError("Failed to change ownership");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeDf(const ToolCall& tool_call) {
+    ToolResult result;
+
+    std::string path = "";
+    bool human = true;
+
+    auto path_it = tool_call.parameters.find("path");
+    if (path_it != tool_call.parameters.end()) {
+        path = path_it->second;
+    }
+
+    auto human_it = tool_call.parameters.find("human");
+    if (human_it != tool_call.parameters.end()) {
+        human = (human_it->second != "false" && human_it->second != "0");
+    }
+
+    utils::terminal::printInfo("[Tool: Df]");
+    if (!path.empty()) {
+        std::cout << utils::terminal::CYAN << "Path: " << path << utils::terminal::RESET << "\n";
+    }
+    std::cout << "\n";
+
+    std::string command = "df";
+    if (human) command += " -h";
+    if (!path.empty()) command += " " + path;
+
+    if (!requestConfirmation("Df", "Show disk space?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Getting disk space...");
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Df complete");
+    } else {
+        utils::terminal::printError("Df failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
+ToolResult ToolExecutor::executeDu(const ToolCall& tool_call) {
+    ToolResult result;
+
+    std::string path = ".";
+    bool human = true;
+    bool summary = false;
+    int max_depth = -1;
+
+    auto path_it = tool_call.parameters.find("path");
+    if (path_it != tool_call.parameters.end()) {
+        path = path_it->second;
+    }
+
+    auto human_it = tool_call.parameters.find("human");
+    if (human_it != tool_call.parameters.end()) {
+        human = (human_it->second != "false" && human_it->second != "0");
+    }
+
+    auto summary_it = tool_call.parameters.find("summary");
+    if (summary_it != tool_call.parameters.end()) {
+        summary = (summary_it->second == "true" || summary_it->second == "1");
+    }
+
+    auto depth_it = tool_call.parameters.find("max_depth");
+    if (depth_it != tool_call.parameters.end()) {
+        try {
+            max_depth = std::stoi(depth_it->second);
+        } catch (...) {}
+    }
+
+    utils::terminal::printInfo("[Tool: Du]");
+    std::cout << utils::terminal::CYAN << "Path: " << path << utils::terminal::RESET << "\n";
+    std::cout << "\n";
+
+    std::string command = "du";
+    if (human) command += " -h";
+    if (summary) command += " -s";
+    else if (max_depth >= 0) command += " -d " + std::to_string(max_depth);
+    command += " " + path;
+
+    if (!requestConfirmation("Du", "Show disk usage for " + path + "?")) {
+        result.success = false;
+        result.error = "Cancelled by user";
+        utils::terminal::printError("Cancelled");
+        return result;
+    }
+
+    utils::terminal::printInfo("Calculating disk usage...");
+    result.output = executeCommand(command, result.exit_code);
+    result.success = (result.exit_code == 0);
+
+    if (result.success) {
+        utils::terminal::printSuccess("Du complete");
+    } else {
+        utils::terminal::printError("Du failed");
+    }
+
+    std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
+    return result;
+}
+
 ToolResult ToolExecutor::execute(const ToolCall& tool_call) {
     // Check if this is an MCP tool
     if (isMCPTool(tool_call.name)) {
@@ -1342,6 +3353,80 @@ ToolResult ToolExecutor::execute(const ToolCall& tool_call) {
         return executeRemember(tool_call);
     } else if (tool_call.name == "Forget") {
         return executeForget(tool_call);
+    }
+    // Network tools
+    else if (tool_call.name == "Ping") {
+        return executePing(tool_call);
+    } else if (tool_call.name == "Traceroute") {
+        return executeTraceroute(tool_call);
+    } else if (tool_call.name == "Nmap") {
+        return executeNmap(tool_call);
+    } else if (tool_call.name == "Dig") {
+        return executeDig(tool_call);
+    } else if (tool_call.name == "Whois") {
+        return executeWhois(tool_call);
+    } else if (tool_call.name == "Netstat") {
+        return executeNetstat(tool_call);
+    } else if (tool_call.name == "Curl") {
+        return executeCurl(tool_call);
+    } else if (tool_call.name == "SSH") {
+        return executeSSH(tool_call);
+    } else if (tool_call.name == "Telnet") {
+        return executeTelnet(tool_call);
+    } else if (tool_call.name == "Netcat") {
+        return executeNetcat(tool_call);
+    } else if (tool_call.name == "Ifconfig") {
+        return executeIfconfig(tool_call);
+    } else if (tool_call.name == "ARP") {
+        return executeArp(tool_call);
+    }
+    // Package manager tools
+    else if (tool_call.name == "Brew") {
+        return executeBrew(tool_call);
+    } else if (tool_call.name == "Pip") {
+        return executePip(tool_call);
+    } else if (tool_call.name == "Npm") {
+        return executeNpm(tool_call);
+    } else if (tool_call.name == "Apt") {
+        return executeApt(tool_call);
+    } else if (tool_call.name == "Dnf") {
+        return executeDnf(tool_call);
+    } else if (tool_call.name == "Yum") {
+        return executeYum(tool_call);
+    } else if (tool_call.name == "Pacman") {
+        return executePacman(tool_call);
+    } else if (tool_call.name == "Zypper") {
+        return executeZypper(tool_call);
+    }
+    // File operation tools
+    else if (tool_call.name == "Tar") {
+        return executeTar(tool_call);
+    } else if (tool_call.name == "Zip") {
+        return executeZip(tool_call);
+    } else if (tool_call.name == "Unzip") {
+        return executeUnzip(tool_call);
+    } else if (tool_call.name == "Gzip") {
+        return executeGzip(tool_call);
+    } else if (tool_call.name == "Rsync") {
+        return executeRsync(tool_call);
+    } else if (tool_call.name == "Scp") {
+        return executeScp(tool_call);
+    } else if (tool_call.name == "Cp") {
+        return executeCp(tool_call);
+    } else if (tool_call.name == "Mv") {
+        return executeMv(tool_call);
+    } else if (tool_call.name == "Rm") {
+        return executeRm(tool_call);
+    } else if (tool_call.name == "Mkdir") {
+        return executeMkdir(tool_call);
+    } else if (tool_call.name == "Chmod") {
+        return executeChmod(tool_call);
+    } else if (tool_call.name == "Chown") {
+        return executeChown(tool_call);
+    } else if (tool_call.name == "Df") {
+        return executeDf(tool_call);
+    } else if (tool_call.name == "Du") {
+        return executeDu(tool_call);
     }
     else {
         ToolResult result;

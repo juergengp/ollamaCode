@@ -16,7 +16,8 @@ enum class AgentType {
     Planner,    // Planning without execution
     Searcher,   // Web search and research
     Database,   // Database queries and analysis
-    Learner     // RAG learning and retrieval
+    Learner,    // RAG learning and retrieval
+    Network     // Network diagnostics and tools
 };
 
 struct Agent {
@@ -77,6 +78,7 @@ private:
     static Agent getSearcherAgent();
     static Agent getDatabaseAgent();
     static Agent getLearnerAgent();
+    static Agent getNetworkAgent();
 };
 
 } // namespace casper

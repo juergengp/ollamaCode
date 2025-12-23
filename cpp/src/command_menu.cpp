@@ -37,8 +37,8 @@ CommandMenu::CommandMenu()
         {"auto",    "Toggle auto-approve for tools",     "/auto [on|off]"},
         {"config",  "Show current configuration",        "/config"},
         {"clear",   "Clear the screen",                  "/clear"},
-        {"exit",    "Exit Casper",                   "/exit"},
-        {"quit",    "Exit Casper",                   "/quit"},
+        {"exit",    "Exit CASPER",                   "/exit"},
+        {"quit",    "Exit CASPER",                   "/quit"},
     };
 }
 

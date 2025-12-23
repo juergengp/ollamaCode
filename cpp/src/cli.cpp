@@ -67,7 +67,7 @@ bool CLI::parseArgs(int argc, char* argv[]) {
             printHelp();
             return false;
         } else if (arg == "-v" || arg == "--version") {
-            std::cout << "Casper version 2.3.1 (C++)" << std::endl;
+            std::cout << "CASPER version 2.3.1 (C++)" << std::endl;
             return false;
         } else if (arg == "-m" || arg == "--model") {
             if (i + 1 < argc) {
@@ -101,12 +101,11 @@ bool CLI::parseArgs(int argc, char* argv[]) {
 void CLI::printBanner() {
     std::cout << utils::terminal::CYAN << utils::terminal::BOLD;
     std::cout << R"(
-   ____
-  / ___|__ _ ___ _ __   ___ _ __
- | |   / _` / __| '_ \ / _ \ '__|
- | |__| (_| \__ \ |_) |  __/ |
-  \____\__,_|___/ .__/ \___|_|
-                |_|
+   ____    _    ____  ____  _____ ____
+  / ___|  / \  / ___||  _ \| ____|  _ \
+ | |     / _ \ \___ \| |_) |  _| | |_) |
+ | |___ / ___ \ ___) |  __/| |___|  _ <
+  \____/_/   \_\____/|_|   |_____|_| \_\
 )" << utils::terminal::RESET;
 
     std::cout << utils::terminal::BLUE << "Local AI. Real power. - Version 2.3.1" << utils::terminal::RESET << "\n";
@@ -143,7 +142,7 @@ INTERACTIVE COMMANDS (use /command):
     /mcp tools              List available MCP tools
     /clear                  Clear screen
     /config                 Show configuration
-    /exit, /quit            Exit oleg
+    /exit, /quit            Exit CASPER
 
 AGENT COMMANDS:
     /agent                  Show current agent status
@@ -157,6 +156,7 @@ AGENT COMMANDS:
     /search, /web           Switch to searcher agent (web search)
     /db, /database          Switch to database agent (SQL queries)
     /learn, /memory, /rag   Switch to learner agent (RAG knowledge)
+    /net, /network          Switch to network agent (ping, ssh, nmap, etc.)
 
 MODEL MANAGEMENT:
     /model create           Interactive custom model creation
