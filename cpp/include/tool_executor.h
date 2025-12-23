@@ -120,6 +120,11 @@ private:
     bool isCommandSafe(const std::string& command);
     bool requestConfirmation(const std::string& tool_name, const std::string& description);
     std::string executeCommand(const std::string& command, int& exit_code);
+
+    // Tool availability helpers
+    bool ensureToolAvailable(const std::string& tool_name, const std::string& package_name = "");
+    std::string getInstallCommand(const std::string& package_name);
+    bool installPackage(const std::string& package_name);
 };
 
 } // namespace casper

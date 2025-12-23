@@ -139,6 +139,56 @@ std::string getOsName() {
     #endif
 }
 
+std::string getLinuxDistro() {
+    #ifdef __linux__
+    // Try to read /etc/os-release
+    std::ifstream osRelease("/etc/os-release");
+    if (osRelease.is_open()) {
+        std::string line;
+        while (std::getline(osRelease, line)) {
+            if (line.find("ID=") == 0) {
+                std::string distro = line.substr(3);
+                // Remove quotes if present
+                if (!distro.empty() && distro[0] == '"') {
+                    distro = distro.substr(1, distro.length() - 2);
+                }
+                return distro;
+            }
+        }
+    }
+    // Fallback: check for specific files
+    if (fileExists("/etc/debian_version")) return "debian";
+    if (fileExists("/etc/fedora-release")) return "fedora";
+    if (fileExists("/etc/centos-release")) return "centos";
+    if (fileExists("/etc/arch-release")) return "arch";
+    if (fileExists("/etc/SuSE-release")) return "suse";
+    return "unknown";
+    #else
+    return "not-linux";
+    #endif
+}
+
+bool commandExists(const std::string& cmd) {
+    std::string check = "command -v " + cmd + " > /dev/null 2>&1";
+    return (system(check.c_str()) == 0);
+}
+
+bool isMacOS() {
+    #ifdef __APPLE__
+    return true;
+    #else
+    return false;
+    #endif
+}
+
+bool isLinux() {
+    #ifdef __linux__
+    return true;
+    #else
+    return false;
+    #endif
+}
+
 // Time utilities
 std::string getCurrentTimestamp() {
     auto now = std::chrono::system_clock::now();

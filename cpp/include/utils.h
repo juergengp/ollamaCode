@@ -30,6 +30,10 @@ std::string getDirname(const std::string& path);
 // System utilities
 std::string getUsername();
 std::string getOsName();
+std::string getLinuxDistro();
+bool commandExists(const std::string& cmd);
+bool isMacOS();
+bool isLinux();
 
 // Time utilities
 std::string getCurrentTimestamp();

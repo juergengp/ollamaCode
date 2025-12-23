@@ -118,6 +118,91 @@ std::string ToolExecutor::executeCommand(const std::string& command, int& exit_c
     return result;
 }
 
+std::string ToolExecutor::getInstallCommand(const std::string& package_name) {
+    if (utils::isMacOS()) {
+        if (utils::commandExists("brew")) {
+            return "brew install " + package_name;
+        }
+        return "";
+    } else if (utils::isLinux()) {
+        std::string distro = utils::getLinuxDistro();
+        if (distro == "ubuntu" || distro == "debian" || distro == "linuxmint" || distro == "pop") {
+            return "sudo apt install -y " + package_name;
+        } else if (distro == "fedora") {
+            return "sudo dnf install -y " + package_name;
+        } else if (distro == "centos" || distro == "rhel" || distro == "rocky" || distro == "almalinux") {
+            if (utils::commandExists("dnf")) {
+                return "sudo dnf install -y " + package_name;
+            }
+            return "sudo yum install -y " + package_name;
+        } else if (distro == "arch" || distro == "manjaro") {
+            return "sudo pacman -S --noconfirm " + package_name;
+        } else if (distro == "opensuse" || distro == "suse" || distro == "sles") {
+            return "sudo zypper install -y " + package_name;
+        } else if (distro == "alpine") {
+            return "sudo apk add " + package_name;
+        }
+        // Fallback: try to detect available package manager
+        if (utils::commandExists("apt")) return "sudo apt install -y " + package_name;
+        if (utils::commandExists("dnf")) return "sudo dnf install -y " + package_name;
+        if (utils::commandExists("yum")) return "sudo yum install -y " + package_name;
+        if (utils::commandExists("pacman")) return "sudo pacman -S --noconfirm " + package_name;
+        if (utils::commandExists("zypper")) return "sudo zypper install -y " + package_name;
+        if (utils::commandExists("apk")) return "sudo apk add " + package_name;
+    }
+    return "";
+}
+
+bool ToolExecutor::installPackage(const std::string& package_name) {
+    std::string install_cmd = getInstallCommand(package_name);
+    if (install_cmd.empty()) {
+        utils::terminal::printError("No package manager found to install " + package_name);
+        return false;
+    }
+
+    utils::terminal::printInfo("Installing " + package_name + "...");
+    std::cout << utils::terminal::CYAN << "Command: " << install_cmd << utils::terminal::RESET << "\n";
+
+    int exit_code;
+    std::string output = executeCommand(install_cmd, exit_code);
+
+    if (exit_code == 0) {
+        utils::terminal::printSuccess(package_name + " installed successfully");
+        std::cout << output << "\n";
+        return true;
+    } else {
+        utils::terminal::printError("Failed to install " + package_name);
+        std::cout << output << "\n";
+        return false;
+    }
+}
+
+bool ToolExecutor::ensureToolAvailable(const std::string& tool_name, const std::string& package_name) {
+    if (utils::commandExists(tool_name)) {
+        return true;
+    }
+
+    std::string pkg = package_name.empty() ? tool_name : package_name;
+    std::string install_cmd = getInstallCommand(pkg);
+
+    if (install_cmd.empty()) {
+        utils::terminal::printError(tool_name + " is not installed and no package manager found.");
+        return false;
+    }
+
+    utils::terminal::printWarning(tool_name + " is not installed.");
+    std::cout << utils::terminal::YELLOW << "Install " << pkg << "? (" << install_cmd << ") [y/N]: " << utils::terminal::RESET;
+
+    std::string response;
+    std::getline(std::cin, response);
+
+    if (response == "y" || response == "Y" || response == "yes" || response == "Yes") {
+        return installPackage(pkg);
+    }
+
+    return false;
+}
+
 ToolResult ToolExecutor::executeBash(const ToolCall& tool_call) {
     ToolResult result;
 
@@ -581,12 +666,24 @@ ToolResult ToolExecutor::executeGrep(const ToolCall& tool_call) {
     std::cout << utils::terminal::CYAN << "Path: " << path << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::CYAN << "Mode: " << output_mode << utils::terminal::RESET << "\n\n";
 
-    // Build grep command
+    // Build grep command - prefer ripgrep (rg) if available
     std::string command;
-    if (output_mode == "content") {
-        command = "grep -r -n '" + pattern + "' " + path + " 2>/dev/null | head -100";
+    bool use_rg = utils::commandExists("rg");
+
+    if (use_rg) {
+        std::cout << utils::terminal::CYAN << "Using: ripgrep (rg)" << utils::terminal::RESET << "\n";
+        if (output_mode == "content") {
+            command = "rg -n '" + pattern + "' " + path + " 2>/dev/null | head -100";
+        } else {
+            command = "rg -l '" + pattern + "' " + path + " 2>/dev/null | head -100";
+        }
     } else {
-        command = "grep -r -l '" + pattern + "' " + path + " 2>/dev/null | head -100";
+        std::cout << utils::terminal::CYAN << "Using: grep" << utils::terminal::RESET << "\n";
+        if (output_mode == "content") {
+            command = "grep -r -n '" + pattern + "' " + path + " 2>/dev/null | head -100";
+        } else {
+            command = "grep -r -l '" + pattern + "' " + path + " 2>/dev/null | head -100";
+        }
     }
 
     result.output = executeCommand(command, result.exit_code);
@@ -1326,6 +1423,7 @@ ToolResult ToolExecutor::executePing(const ToolCall& tool_call) {
     }
 
     utils::terminal::printInfo("[Tool: Ping]");
+    std::cout << utils::terminal::CYAN << "OS: " << utils::getOsName() << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::CYAN << "Host: " << host << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::CYAN << "Count: " << count << utils::terminal::RESET << "\n\n";
 
@@ -1373,6 +1471,7 @@ ToolResult ToolExecutor::executeTraceroute(const ToolCall& tool_call) {
     }
 
     utils::terminal::printInfo("[Tool: Traceroute]");
+    std::cout << utils::terminal::CYAN << "OS: " << utils::getOsName() << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::CYAN << "Host: " << host << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::CYAN << "Max hops: " << max_hops << utils::terminal::RESET << "\n\n";
 
@@ -1384,7 +1483,19 @@ ToolResult ToolExecutor::executeTraceroute(const ToolCall& tool_call) {
     }
 
     utils::terminal::printInfo("Tracing route...");
-    std::string command = "traceroute -m " + std::to_string(max_hops) + " " + host;
+    std::string command;
+    if (utils::isLinux() && utils::commandExists("tracepath")) {
+        // tracepath doesn't require root on Linux
+        command = "tracepath -m " + std::to_string(max_hops) + " " + host;
+    } else {
+        // Ensure traceroute is available
+        if (!ensureToolAvailable("traceroute")) {
+            result.success = false;
+            result.error = "traceroute is not available";
+            return result;
+        }
+        command = "traceroute -m " + std::to_string(max_hops) + " " + host;
+    }
     result.output = executeCommand(command, result.exit_code);
     result.success = (result.exit_code == 0);
 
@@ -1428,12 +1539,20 @@ ToolResult ToolExecutor::executeNmap(const ToolCall& tool_call) {
     }
 
     utils::terminal::printInfo("[Tool: Nmap]");
+    std::cout << utils::terminal::CYAN << "OS: " << utils::getOsName() << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::CYAN << "Target: " << target << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::CYAN << "Scan type: " << scan_type << utils::terminal::RESET << "\n";
     if (!ports.empty()) {
         std::cout << utils::terminal::CYAN << "Ports: " << ports << utils::terminal::RESET << "\n";
     }
     std::cout << "\n";
+
+    // Check if nmap is installed, offer to install if not
+    if (!ensureToolAvailable("nmap")) {
+        result.success = false;
+        result.error = "nmap is not available";
+        return result;
+    }
 
     if (!requestConfirmation("Nmap", "Scan " + target + "?")) {
         result.success = false;
@@ -1450,9 +1569,6 @@ ToolResult ToolExecutor::executeNmap(const ToolCall& tool_call) {
     if (result.success) {
         utils::terminal::printSuccess("Scan complete");
     } else {
-        if (result.output.find("command not found") != std::string::npos) {
-            result.error = "nmap not installed. Install with: brew install nmap";
-        }
         utils::terminal::printError("Scan failed");
     }
 
@@ -1479,8 +1595,20 @@ ToolResult ToolExecutor::executeDig(const ToolCall& tool_call) {
     }
 
     utils::terminal::printInfo("[Tool: Dig]");
+    std::cout << utils::terminal::CYAN << "OS: " << utils::getOsName() << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::CYAN << "Domain: " << domain << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::CYAN << "Record type: " << record_type << utils::terminal::RESET << "\n\n";
+
+    // Ensure dig is available (package name varies: dnsutils on Debian, bind-utils on RHEL)
+    if (!utils::commandExists("dig")) {
+        std::string pkg = utils::isMacOS() ? "bind" :
+                         (utils::getLinuxDistro() == "ubuntu" || utils::getLinuxDistro() == "debian") ? "dnsutils" : "bind-utils";
+        if (!ensureToolAvailable("dig", pkg)) {
+            result.success = false;
+            result.error = "dig is not available";
+            return result;
+        }
+    }
 
     if (!requestConfirmation("Dig", "DNS lookup for " + domain + "?")) {
         result.success = false;
@@ -1524,7 +1652,15 @@ ToolResult ToolExecutor::executeWhois(const ToolCall& tool_call) {
     std::string domain = domain_it->second;
 
     utils::terminal::printInfo("[Tool: Whois]");
+    std::cout << utils::terminal::CYAN << "OS: " << utils::getOsName() << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::CYAN << "Domain: " << domain << utils::terminal::RESET << "\n\n";
+
+    // Ensure whois is available
+    if (!ensureToolAvailable("whois")) {
+        result.success = false;
+        result.error = "whois is not available";
+        return result;
+    }
 
     if (!requestConfirmation("Whois", "WHOIS lookup for " + domain + "?")) {
         result.success = false;
@@ -1564,7 +1700,8 @@ ToolResult ToolExecutor::executeNetstat(const ToolCall& tool_call) {
         filter = filter_it->second;
     }
 
-    utils::terminal::printInfo("[Tool: Netstat]");
+    utils::terminal::printInfo("[Tool: Netstat/SS]");
+    std::cout << utils::terminal::CYAN << "OS: " << utils::getOsName() << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::CYAN << "Flags: " << flags << utils::terminal::RESET << "\n";
     if (!filter.empty()) {
         std::cout << utils::terminal::CYAN << "Filter: " << filter << utils::terminal::RESET << "\n";
@@ -1579,16 +1716,29 @@ ToolResult ToolExecutor::executeNetstat(const ToolCall& tool_call) {
     }
 
     utils::terminal::printInfo("Getting network stats...");
-    std::string command = "netstat " + flags;
+    std::string command;
+    // On Linux, prefer 'ss' (modern) over 'netstat' (deprecated)
+    if (utils::isLinux() && utils::commandExists("ss")) {
+        // Map common netstat flags to ss flags
+        std::string ss_flags = "-a";
+        if (flags.find('t') != std::string::npos) ss_flags += "t";
+        if (flags.find('u') != std::string::npos) ss_flags += "u";
+        if (flags.find('n') != std::string::npos) ss_flags += "n";
+        if (flags.find('l') != std::string::npos) ss_flags += "l";
+        if (flags.find('p') != std::string::npos) ss_flags += "p";
+        command = "ss " + ss_flags;
+    } else {
+        command = "netstat " + flags;
+    }
     if (!filter.empty()) {
         command += " | grep -i '" + filter + "'";
     }
     command += " | head -100";
 
     result.output = executeCommand(command, result.exit_code);
-    result.success = true;  // netstat always succeeds
+    result.success = true;
 
-    utils::terminal::printSuccess("Netstat complete");
+    utils::terminal::printSuccess("Network stats complete");
     std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
     return result;
 }
@@ -1883,7 +2033,8 @@ ToolResult ToolExecutor::executeIfconfig(const ToolCall& tool_call) {
         interface = iface_it->second;
     }
 
-    utils::terminal::printInfo("[Tool: Ifconfig]");
+    utils::terminal::printInfo("[Tool: Ifconfig/IP]");
+    std::cout << utils::terminal::CYAN << "OS: " << utils::getOsName() << utils::terminal::RESET << "\n";
     if (!interface.empty()) {
         std::cout << utils::terminal::CYAN << "Interface: " << interface << utils::terminal::RESET << "\n";
     }
@@ -1897,14 +2048,24 @@ ToolResult ToolExecutor::executeIfconfig(const ToolCall& tool_call) {
     }
 
     utils::terminal::printInfo("Getting interface info...");
-    std::string command = "ifconfig " + interface;
+    std::string command;
+    // On Linux, prefer 'ip' command (modern) over 'ifconfig' (deprecated)
+    if (utils::isLinux() && utils::commandExists("ip")) {
+        if (interface.empty()) {
+            command = "ip addr show";
+        } else {
+            command = "ip addr show " + interface;
+        }
+    } else {
+        command = "ifconfig " + interface;
+    }
     result.output = executeCommand(command, result.exit_code);
     result.success = (result.exit_code == 0);
 
     if (result.success) {
-        utils::terminal::printSuccess("Ifconfig complete");
+        utils::terminal::printSuccess("Network info retrieved");
     } else {
-        utils::terminal::printError("Ifconfig failed");
+        utils::terminal::printError("Failed to get network info");
     }
 
     std::cout << "\n=== Output ===\n" << result.output << "==============\n\n";
@@ -2814,10 +2975,18 @@ ToolResult ToolExecutor::executeRsync(const ToolCall& tool_call) {
     }
 
     utils::terminal::printInfo("[Tool: Rsync]");
+    std::cout << utils::terminal::CYAN << "OS: " << utils::getOsName() << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::CYAN << "Source: " << source << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::CYAN << "Destination: " << dest << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::CYAN << "Flags: " << flags << utils::terminal::RESET << "\n";
     std::cout << "\n";
+
+    // Ensure rsync is available
+    if (!ensureToolAvailable("rsync")) {
+        result.success = false;
+        result.error = "rsync is not available";
+        return result;
+    }
 
     std::string command = "rsync " + flags;
     if (delete_extra) command += " --delete";
