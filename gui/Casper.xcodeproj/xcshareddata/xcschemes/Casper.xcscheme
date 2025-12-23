@@ -16,9 +16,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "8EF465CB9C51A757F71D9A09"
-               BuildableName = "OllamaCode.app"
-               BlueprintName = "OllamaCode"
-               ReferencedContainer = "container:OllamaCode.xcodeproj">
+               BuildableName = "Casper.app"
+               BlueprintName = "Casper"
+               ReferencedContainer = "container:Casper.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "8EF465CB9C51A757F71D9A09"
-            BuildableName = "OllamaCode.app"
-            BlueprintName = "OllamaCode"
-            ReferencedContainer = "container:OllamaCode.xcodeproj">
+            BuildableName = "Casper.app"
+            BlueprintName = "Casper"
+            ReferencedContainer = "container:Casper.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
@@ -45,9 +45,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "6A9EC6A1EA63843D57C83EDF"
-               BuildableName = "OllamaCodeTests.xctest"
-               BlueprintName = "OllamaCodeTests"
-               ReferencedContainer = "container:OllamaCode.xcodeproj">
+               BuildableName = "CasperTests.xctest"
+               BlueprintName = "CasperTests"
+               ReferencedContainer = "container:Casper.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -69,9 +69,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "8EF465CB9C51A757F71D9A09"
-            BuildableName = "OllamaCode.app"
-            BlueprintName = "OllamaCode"
-            ReferencedContainer = "container:OllamaCode.xcodeproj">
+            BuildableName = "Casper.app"
+            BlueprintName = "Casper"
+            ReferencedContainer = "container:Casper.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
@@ -88,9 +88,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "8EF465CB9C51A757F71D9A09"
-            BuildableName = "OllamaCode.app"
-            BlueprintName = "OllamaCode"
-            ReferencedContainer = "container:OllamaCode.xcodeproj">
+            BuildableName = "Casper.app"
+            BlueprintName = "Casper"
+            ReferencedContainer = "container:Casper.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>

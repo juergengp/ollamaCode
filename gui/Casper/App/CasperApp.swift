@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct OllamaCodeApp: App {
+struct CasperApp: App {
     @StateObject private var appState = AppState()
 
     var body: some Scene {
