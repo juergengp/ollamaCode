@@ -101,12 +101,12 @@ bool CLI::parseArgs(int argc, char* argv[]) {
 void CLI::printBanner() {
     std::cout << utils::terminal::CYAN << utils::terminal::BOLD;
     std::cout << R"(
-   ____  _ _                       ____          _
-  / __ \| | | __ _ _ __ ___   __ _/ ___|___   __| | ___
- | |  | | | |/ _` | '_ ` _ \ / _` | |   / _ \ / _` |/ _ \
- | |__| | | | (_| | | | | | | (_| | |__| (_) | (_| |  __/
-  \____/|_|_|\__,_|_| |_| |_|\__,_|\____\___/ \__,_|\___|
-
+   ___  _ _____
+  / _ \| | ____|__ _
+ | | | | |  _| / _` |
+ | |_| | | |__| (_| |
+  \___/|_|_____\__, |
+               |___/
 )" << utils::terminal::RESET;
 
     std::cout << utils::terminal::BLUE << "Interactive CLI for Ollama - Version 2.3.1 (C++)" << utils::terminal::RESET << "\n";
