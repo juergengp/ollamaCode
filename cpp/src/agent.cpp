@@ -1,7 +1,7 @@
 #include "agent.h"
 #include <algorithm>
 
-namespace oleg {
+namespace casper {
 
 Agent AgentRegistry::getExplorerAgent() {
     Agent agent;
@@ -407,4 +407,4 @@ AgentType AgentRegistry::parseAgentName(const std::string& name) {
     return AgentType::General;
 }
 
-} // namespace oleg
+} // namespace casper

@@ -1,12 +1,12 @@
-#ifndef OLEG_EMBEDDINGS_H
-#define OLEG_EMBEDDINGS_H
+#ifndef CASPER_EMBEDDINGS_H
+#define CASPER_EMBEDDINGS_H
 
 #include <string>
 #include <vector>
 #include <memory>
 #include <functional>
 
-namespace oleg {
+namespace casper {
 
 // Embedding vector type
 using Embedding = std::vector<float>;
@@ -146,6 +146,6 @@ private:
     EmbeddingProvider* getActiveProvider();
 };
 
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_EMBEDDINGS_H
+#endif // CASPER_EMBEDDINGS_H

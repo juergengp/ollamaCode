@@ -1,5 +1,5 @@
-#ifndef OLEG_MCP_CLIENT_H
-#define OLEG_MCP_CLIENT_H
+#ifndef CASPER_MCP_CLIENT_H
+#define CASPER_MCP_CLIENT_H
 
 #include <string>
 #include <vector>
@@ -11,7 +11,7 @@
 
 using json = nlohmann::json;
 
-namespace oleg {
+namespace casper {
 
 // MCP Tool definition
 struct MCPTool {
@@ -145,6 +145,6 @@ private:
     void notifyStatus(const std::string& server, const std::string& status);
 };
 
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_MCP_CLIENT_H
+#endif // CASPER_MCP_CLIENT_H

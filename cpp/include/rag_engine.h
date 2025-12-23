@@ -1,5 +1,5 @@
-#ifndef OLEG_RAG_ENGINE_H
-#define OLEG_RAG_ENGINE_H
+#ifndef CASPER_RAG_ENGINE_H
+#define CASPER_RAG_ENGINE_H
 
 #include "vector_db.h"
 #include "embeddings.h"
@@ -8,7 +8,7 @@
 #include <memory>
 #include <functional>
 
-namespace oleg {
+namespace casper {
 
 // Document chunk for indexing
 struct DocumentChunk {
@@ -105,6 +105,6 @@ private:
     int estimateTokens(const std::string& text);
 };
 
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_RAG_ENGINE_H
+#endif // CASPER_RAG_ENGINE_H

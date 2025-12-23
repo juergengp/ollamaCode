@@ -1,5 +1,5 @@
-#ifndef OLEG_CLI_H
-#define OLEG_CLI_H
+#ifndef CASPER_CLI_H
+#define CASPER_CLI_H
 
 #include <string>
 #include <vector>
@@ -17,7 +17,7 @@
 #include "model_manager.h"
 #include "prompt_db.h"
 
-namespace oleg {
+namespace casper {
 
 class CLI {
 public:
@@ -119,6 +119,6 @@ private:
     static const int MAX_TOOL_ITERATIONS = 10;
 };
 
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_CLI_H
+#endif // CASPER_CLI_H

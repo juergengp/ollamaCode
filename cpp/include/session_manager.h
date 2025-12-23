@@ -1,5 +1,5 @@
-#ifndef OLEG_SESSION_MANAGER_H
-#define OLEG_SESSION_MANAGER_H
+#ifndef CASPER_SESSION_MANAGER_H
+#define CASPER_SESSION_MANAGER_H
 
 #include <string>
 #include <vector>
@@ -8,7 +8,7 @@
 #include <sqlite3.h>
 #include "json.hpp"
 
-namespace oleg {
+namespace casper {
 
 using json = nlohmann::json;
 
@@ -148,6 +148,6 @@ private:
     std::string db_path_;
 };
 
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_SESSION_MANAGER_H
+#endif // CASPER_SESSION_MANAGER_H

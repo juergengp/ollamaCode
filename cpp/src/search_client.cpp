@@ -9,7 +9,7 @@
 
 using json = nlohmann::json;
 
-namespace oleg {
+namespace casper {
 
 // CURL write callback
 static size_t writeCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
@@ -457,4 +457,4 @@ std::vector<WebPage> SearchClient::crawlSite(const std::string& url, int max_pag
     return spider_->crawl(url, max_pages);
 }
 
-} // namespace oleg
+} // namespace casper

@@ -1,11 +1,11 @@
-#ifndef OLEG_LICENSE_H
-#define OLEG_LICENSE_H
+#ifndef CASPER_LICENSE_H
+#define CASPER_LICENSE_H
 
 #include <string>
 #include <vector>
 #include <cstdint>
 
-namespace oleg {
+namespace casper {
 
 // License tiers
 enum class LicenseTier {
@@ -120,6 +120,6 @@ private:
     int daysUntilExpiration(const std::string& expires_at) const;
 };
 
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_LICENSE_H
+#endif // CASPER_LICENSE_H

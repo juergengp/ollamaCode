@@ -1,6 +1,6 @@
 # MCP (Model Context Protocol) Setup Guide
 
-OlEg supports MCP (Model Context Protocol), allowing you to connect to external MCP servers and use their tools with your local Ollama models.
+Casper supports MCP (Model Context Protocol), allowing you to connect to external MCP servers and use their tools with your local Ollama models.
 
 ## What is MCP?
 
@@ -43,7 +43,7 @@ MCP (Model Context Protocol) is an open protocol that standardizes how AI applic
 
 ## Configuration
 
-MCP servers are configured in `~/.config/oleg/mcp_servers.json`:
+MCP servers are configured in `~/.config/casper/mcp_servers.json`:
 
 ```json
 {
@@ -190,7 +190,7 @@ Persistent memory for conversations:
 
 ### Enable MCP on Startup
 ```bash
-oleg --mcp
+casper --mcp
 ```
 
 ### Interactive Commands
@@ -206,7 +206,7 @@ oleg --mcp
 ### Example Session
 
 ```
-$ oleg --mcp
+$ casper --mcp
 
 Connecting to MCP servers...
   [MCP] filesystem: connecting...

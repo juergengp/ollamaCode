@@ -15,7 +15,7 @@
 #include <readline/history.h>
 #endif
 
-namespace oleg {
+namespace casper {
 
 CLI::CLI()
     : agentModeEnabled_(true)  // Enable agent mode by default
@@ -67,7 +67,7 @@ bool CLI::parseArgs(int argc, char* argv[]) {
             printHelp();
             return false;
         } else if (arg == "-v" || arg == "--version") {
-            std::cout << "OlEg version 2.3.1 (C++)" << std::endl;
+            std::cout << "Casper version 2.3.1 (C++)" << std::endl;
             return false;
         } else if (arg == "-m" || arg == "--model") {
             if (i + 1 < argc) {
@@ -101,12 +101,12 @@ bool CLI::parseArgs(int argc, char* argv[]) {
 void CLI::printBanner() {
     std::cout << utils::terminal::CYAN << utils::terminal::BOLD;
     std::cout << R"(
-   ___  _ _____
-  / _ \| | ____|__ _
- | | | | |  _| / _` |
- | |_| | | |__| (_| |
-  \___/|_|_____\__, |
-               |___/
+   ____
+  / ___|__ _ ___ _ __   ___ _ __
+ | |   / _` / __| '_ \ / _ \ '__|
+ | |__| (_| \__ \ |_) |  __/ |
+  \____\__,_|___/ .__/ \___|_|
+                |_|
 )" << utils::terminal::RESET;
 
     std::cout << utils::terminal::BLUE << "Local AI. Real power. - Version 2.3.1" << utils::terminal::RESET << "\n";
@@ -114,7 +114,7 @@ void CLI::printBanner() {
 }
 
 void CLI::printHelp() {
-    std::cout << R"(Usage: oleg [OPTIONS] [PROMPT]
+    std::cout << R"(Usage: casper [OPTIONS] [PROMPT]
 
 Agentic AI assistant powered by local LLMs
 
@@ -182,14 +182,14 @@ LICENSE:
     /license deactivate     Remove license
 
 EXAMPLES:
-    oleg                              # Start interactive mode
-    oleg "List all Python files"      # Single prompt with tools
-    oleg -m llama3 "Hello"            # Use specific model
-    oleg -a "Build the project"       # Auto-approve all tools
-    oleg --mcp "Search the web"       # Use MCP tools
+    casper                              # Start interactive mode
+    casper "List all Python files"      # Single prompt with tools
+    casper -m llama3 "Hello"            # Use specific model
+    casper -a "Build the project"       # Auto-approve all tools
+    casper --mcp "Search the web"       # Use MCP tools
 
 MCP SERVERS:
-    Configure MCP servers in ~/.config/oleg/mcp_servers.json
+    Configure MCP servers in ~/.config/casper/mcp_servers.json
     See docs/MCP_SETUP.md for configuration examples
 
 WHAT'S NEW in v2.3.0:
@@ -422,7 +422,7 @@ void CLI::initializeMCP() {
     // Load server configurations from config
     auto servers = config_->getMCPServers();
     for (const auto& server : servers) {
-        oleg::MCPServerConfig mcp_config;
+        casper::MCPServerConfig mcp_config;
         mcp_config.name = server.name;
         mcp_config.command = server.command;
         mcp_config.args = server.args;
@@ -1542,4 +1542,4 @@ int CLI::run() {
     return 0;
 }
 
-} // namespace oleg
+} // namespace casper

@@ -1,5 +1,5 @@
-#ifndef OLEG_MODEL_MANAGER_H
-#define OLEG_MODEL_MANAGER_H
+#ifndef CASPER_MODEL_MANAGER_H
+#define CASPER_MODEL_MANAGER_H
 
 #include <string>
 #include <vector>
@@ -7,7 +7,7 @@
 #include <functional>
 #include "ollama_client.h"
 
-namespace oleg {
+namespace casper {
 
 // Forward declarations
 class Config;
@@ -137,6 +137,6 @@ private:
     bool checkLicense(const std::string& operation);
 };
 
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_MODEL_MANAGER_H
+#endif // CASPER_MODEL_MANAGER_H

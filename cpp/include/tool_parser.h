@@ -1,11 +1,11 @@
-#ifndef OLEG_TOOL_PARSER_H
-#define OLEG_TOOL_PARSER_H
+#ifndef CASPER_TOOL_PARSER_H
+#define CASPER_TOOL_PARSER_H
 
 #include <string>
 #include <vector>
 #include <map>
 
-namespace oleg {
+namespace casper {
 
 struct ToolCall {
     std::string name;
@@ -36,6 +36,6 @@ private:
     std::vector<ToolCall> parseAntmlFormat(const std::string& response);
 };
 
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_TOOL_PARSER_H
+#endif // CASPER_TOOL_PARSER_H

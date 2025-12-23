@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cstring>
 
-namespace oleg {
+namespace casper {
 
 // Key codes
 namespace keys {
@@ -411,4 +411,4 @@ MenuResult CommandMenu::show(const std::string& initial_input) {
     return result;
 }
 
-} // namespace oleg
+} // namespace casper

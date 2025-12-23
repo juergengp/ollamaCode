@@ -1,6 +1,6 @@
-# OlEg Quick Start Guide
+# Casper Quick Start Guide
 
-Get up and running with OlEg in 5 minutes!
+Get up and running with Casper in 5 minutes!
 
 ## Prerequisites
 
@@ -56,35 +56,35 @@ ollama pull llama3.1
 
 ---
 
-## Step 3: Install OlEg (1 minute)
+## Step 3: Install Casper (1 minute)
 
 ### Option A: Pre-built Binary (macOS)
 
 ```bash
-git clone https://github.com/juergengp/OlEg.git
-cd OlEg
-sudo cp bin/oleg /usr/local/bin/
+git clone https://github.com/juergengp/Casper.git
+cd Casper
+sudo cp bin/casper /usr/local/bin/
 ```
 
 ### Option B: Build from Source
 
 ```bash
-git clone https://github.com/juergengp/OlEg.git
-cd OlEg/cpp
+git clone https://github.com/juergengp/Casper.git
+cd Casper/cpp
 mkdir build && cd build
 cmake ..
 make
-sudo cp oleg /usr/local/bin/
+sudo cp casper /usr/local/bin/
 ```
 
 ---
 
-## Step 4: Run OlEg!
+## Step 4: Run Casper!
 
 ### Interactive Mode
 
 ```bash
-oleg
+casper
 ```
 
 You'll see:
@@ -130,22 +130,22 @@ You> Create a script that lists all TODO comments
 | `/models` | List available models |
 | `/model` | Switch model interactively |
 | `/config` | Show current settings |
-| `/exit` | Exit OlEg |
+| `/exit` | Exit Casper |
 
 ### Command Line Options
 
 ```bash
 # Single prompt (non-interactive)
-oleg "Explain Docker containers"
+casper "Explain Docker containers"
 
 # Use specific model
-oleg -m codellama "Write a Python function"
+casper -m codellama "Write a Python function"
 
 # Auto-approve all tools
-oleg -a
+casper -a
 
 # Enable MCP servers
-oleg --mcp
+casper --mcp
 ```
 
 ---
@@ -154,7 +154,7 @@ oleg --mcp
 
 1. **Explore MCP** - Connect to external services
    ```bash
-   oleg --mcp
+   casper --mcp
    You> /mcp tools
    ```
 
@@ -199,5 +199,5 @@ You> /safe off
 
 ## Need Help?
 
-- [GitHub Issues](https://github.com/juergengp/OlEg/issues)
-- [Full Documentation](https://github.com/juergengp/OlEg#documentation)
+- [GitHub Issues](https://github.com/juergengp/Casper/issues)
+- [Full Documentation](https://github.com/juergengp/Casper#documentation)

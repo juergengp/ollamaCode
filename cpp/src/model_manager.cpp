@@ -11,7 +11,7 @@
 // Helper macro to cast db_
 #define DB() (reinterpret_cast<sqlite3*>(db_))
 
-namespace oleg {
+namespace casper {
 
 // ============================================================================
 // ModelfileBuilder Implementation
@@ -98,7 +98,7 @@ void ModelManager::initializeDatabase() {
     const char* home = getenv("HOME");
     if (!home) return;
 
-    std::string db_path = std::string(home) + "/.config/oleg/config.db";
+    std::string db_path = std::string(home) + "/.config/casper/config.db";
 
     sqlite3* db_ptr = nullptr;
     int rc = sqlite3_open(db_path.c_str(), &db_ptr);
@@ -633,4 +633,4 @@ std::map<std::string, std::string> ModelManager::getAvailableParameters() {
     };
 }
 
-} // namespace oleg
+} // namespace casper

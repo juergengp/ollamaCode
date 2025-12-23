@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# OlEg - macOS Installation Script
+# Casper - macOS Installation Script
 # Version: 2.1.0
 # Installs the C++ version with full feature support
 #
@@ -18,7 +18,7 @@ BOLD='\033[1m'
 
 # Installation paths
 INSTALL_DIR="/usr/local/bin"
-CONFIG_DIR="${HOME}/.config/oleg"
+CONFIG_DIR="${HOME}/.config/casper"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Banner
@@ -44,10 +44,10 @@ fi
 ARCH=$(uname -m)
 if [[ "$ARCH" == "arm64" ]]; then
     ARCH_NAME="Apple Silicon (ARM64)"
-    BINARY_NAME="oleg-arm64"
+    BINARY_NAME="casper-arm64"
 elif [[ "$ARCH" == "x86_64" ]]; then
     ARCH_NAME="Intel (x86_64)"
-    BINARY_NAME="oleg-x86_64"
+    BINARY_NAME="casper-x86_64"
 else
     echo -e "${RED}Error: Unsupported architecture: $ARCH${NC}"
     exit 1
@@ -89,16 +89,16 @@ BINARY_PATH="${SCRIPT_DIR}/bin/${BINARY_NAME}"
 
 if [[ ! -f "$BINARY_PATH" ]]; then
     # Try the generic binary
-    BINARY_PATH="${SCRIPT_DIR}/bin/oleg"
+    BINARY_PATH="${SCRIPT_DIR}/bin/casper"
 fi
 
 if [[ ! -f "$BINARY_PATH" ]]; then
     # Try build directory
-    BINARY_PATH="${SCRIPT_DIR}/cpp/build/oleg"
+    BINARY_PATH="${SCRIPT_DIR}/cpp/build/casper"
 fi
 
 if [[ ! -f "$BINARY_PATH" ]]; then
-    echo -e "${RED}Error: oleg binary not found${NC}"
+    echo -e "${RED}Error: casper binary not found${NC}"
     echo -e "${YELLOW}Build it first with:${NC}"
     echo -e "  cd cpp && mkdir -p build && cd build && cmake .. && make"
     exit 1
@@ -108,18 +108,18 @@ echo -e "${GREEN}Binary found: ${BINARY_PATH}${NC}"
 echo ""
 
 # Install binary
-echo -e "${YELLOW}Installing oleg...${NC}"
+echo -e "${YELLOW}Installing casper...${NC}"
 
 if [[ -w "${INSTALL_DIR}" ]]; then
-    cp "$BINARY_PATH" "${INSTALL_DIR}/oleg"
-    chmod +x "${INSTALL_DIR}/oleg"
+    cp "$BINARY_PATH" "${INSTALL_DIR}/casper"
+    chmod +x "${INSTALL_DIR}/casper"
 else
     echo -e "${YELLOW}(requires sudo)${NC}"
-    sudo cp "$BINARY_PATH" "${INSTALL_DIR}/oleg"
-    sudo chmod +x "${INSTALL_DIR}/oleg"
+    sudo cp "$BINARY_PATH" "${INSTALL_DIR}/casper"
+    sudo chmod +x "${INSTALL_DIR}/casper"
 fi
 
-echo -e "${GREEN}Installed to ${INSTALL_DIR}/oleg${NC}"
+echo -e "${GREEN}Installed to ${INSTALL_DIR}/casper${NC}"
 echo ""
 
 # Create configuration directory
@@ -129,12 +129,12 @@ echo ""
 
 # Test installation
 echo -e "${YELLOW}Testing installation...${NC}"
-if command_exists oleg; then
-    VERSION=$(oleg --version 2>&1 || echo "unknown")
-    echo -e "${GREEN}oleg is working!${NC}"
+if command_exists casper; then
+    VERSION=$(casper --version 2>&1 || echo "unknown")
+    echo -e "${GREEN}casper is working!${NC}"
     echo -e "  ${CYAN}${VERSION}${NC}"
 else
-    echo -e "${RED}Installation failed - oleg not found in PATH${NC}"
+    echo -e "${RED}Installation failed - casper not found in PATH${NC}"
     exit 1
 fi
 
@@ -151,9 +151,9 @@ fi
 echo -e "${GREEN}${BOLD}Installation Complete!${NC}"
 echo ""
 echo -e "${CYAN}${BOLD}Quick Start:${NC}"
-echo -e "  ${BOLD}oleg${NC}                  # Start interactive mode"
-echo -e "  ${BOLD}oleg --help${NC}           # Show help"
-echo -e "  ${BOLD}oleg --mcp${NC}            # Start with MCP servers"
+echo -e "  ${BOLD}casper${NC}                  # Start interactive mode"
+echo -e "  ${BOLD}casper --help${NC}           # Show help"
+echo -e "  ${BOLD}casper --mcp${NC}            # Start with MCP servers"
 echo ""
 echo -e "${CYAN}${BOLD}Key Commands:${NC}"
 echo -e "  ${BOLD}/model${NC}                      # Interactive model selector"
@@ -163,5 +163,5 @@ echo -e "  ${BOLD}/explore, /code, /run${NC}       # Switch agent modes"
 echo ""
 echo -e "${CYAN}${BOLD}Next Steps:${NC}"
 echo -e "  1. Pull a model: ${BOLD}ollama pull llama3.1${NC}"
-echo -e "  2. Start oleg: ${BOLD}oleg${NC}"
+echo -e "  2. Start casper: ${BOLD}casper${NC}"
 echo ""

@@ -1,12 +1,12 @@
-#ifndef OLEG_AGENT_H
-#define OLEG_AGENT_H
+#ifndef CASPER_AGENT_H
+#define CASPER_AGENT_H
 
 #include <string>
 #include <vector>
 #include <unordered_set>
 #include <functional>
 
-namespace oleg {
+namespace casper {
 
 enum class AgentType {
     General,    // Default - all tools
@@ -79,6 +79,6 @@ private:
     static Agent getLearnerAgent();
 };
 
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_AGENT_H
+#endif // CASPER_AGENT_H

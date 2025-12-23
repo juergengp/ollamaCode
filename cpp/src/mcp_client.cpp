@@ -9,7 +9,7 @@
 #include <errno.h>
 #include <cstring>
 
-namespace oleg {
+namespace casper {
 
 // ============================================================================
 // MCPServerConnection Implementation
@@ -716,4 +716,4 @@ void MCPClient::notifyStatus(const std::string& server, const std::string& statu
     }
 }
 
-} // namespace oleg
+} // namespace casper

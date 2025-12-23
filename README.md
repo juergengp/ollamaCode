@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="docs/assets/logo.svg" alt="OlEg Logo" width="120">
+  <img src="docs/assets/logo.svg" alt="Casper Logo" width="120">
 </p>
 
-<h1 align="center">OlEg</h1>
+<h1 align="center">Casper</h1>
 
 <p align="center">
   <strong>Agentic AI assistant powered by local LLMs - chat, agents, tools, all local</strong>
@@ -65,12 +65,12 @@
 
 ---
 
-## What is OlEg?
+## What is Casper?
 
-**OlEg** brings the power of AI coding assistants to your local machine. It's like having Claude Code or GitHub Copilot, but running entirely on your hardware with your choice of open-source LLMs via [Ollama](https://ollama.ai).
+**Casper** brings the power of AI coding assistants to your local machine. It's like having Claude Code or GitHub Copilot, but running entirely on your hardware with your choice of open-source LLMs via [Ollama](https://ollama.ai).
 
 <p align="center">
-  <img src="docs/assets/screenshot_startup.png" alt="OlEg Startup Screen" width="700">
+  <img src="docs/assets/screenshot_startup.png" alt="Casper Startup Screen" width="700">
 </p>
 
 ## Features
@@ -118,7 +118,7 @@ The AI assistant has access to these tools to help with your tasks:
 
 ### Specialized Agents
 
-OlEg includes specialized agents that focus on specific tasks with curated tool access:
+Casper includes specialized agents that focus on specific tasks with curated tool access:
 
 ```
 ┌─────────────┬─────────────────────────────────────┬──────────────────────────────────┐
@@ -135,7 +135,7 @@ OlEg includes specialized agents that focus on specific tasks with curated tool 
 └─────────────┴─────────────────────────────────────┴──────────────────────────────────┘
 ```
 
-When you enter a prompt, OlEg analyzes your task and suggests the most appropriate agent:
+When you enter a prompt, Casper analyzes your task and suggests the most appropriate agent:
 
 <p align="center">
   <img src="docs/assets/screenshot_agent_selection.png" alt="Agent Selection Menu" width="700">
@@ -147,7 +147,7 @@ Connect your local Ollama models to external tools and services:
 
 ```
 ┌─────────────────┐     MCP Protocol     ┌──────────────┐
-│   OlEg    │ ◄──────────────────► │  MCP Servers │
+│   Casper    │ ◄──────────────────► │  MCP Servers │
 │  (Ollama LLM)   │     (JSON-RPC)       │  - GitHub    │
 └─────────────────┘                      │  - Filesystem│
                                          │  - Database  │
@@ -185,43 +185,43 @@ ollama pull qwen3:4b        # Fast and lightweight
 ollama pull codellama       # Optimized for coding tasks
 ```
 
-### 3. Install OlEg
+### 3. Install Casper
 
 ```bash
 # Option A: Download universal binary (recommended)
-curl -L https://github.com/juergengp/OlEg/releases/latest/download/oleg-macos-universal -o oleg
-chmod +x oleg
-sudo mv oleg /usr/local/bin/
+curl -L https://github.com/juergengp/Casper/releases/latest/download/casper-macos-universal -o casper
+chmod +x casper
+sudo mv casper /usr/local/bin/
 
 # Option B: Build from source
-git clone https://github.com/juergengp/OlEg.git
-cd OlEg/cpp
+git clone https://github.com/juergengp/Casper.git
+cd Casper/cpp
 mkdir build && cd build
 cmake ..
 make
-sudo cp oleg /usr/local/bin/
+sudo cp casper /usr/local/bin/
 ```
 
 ### 4. Run!
 
 ```bash
 # Interactive mode
-oleg
+casper
 
 # Single prompt
-oleg "Explain this codebase structure"
+casper "Explain this codebase structure"
 
 # With MCP enabled
-oleg --mcp
+casper --mcp
 
 # Connect to remote Ollama instance
-oleg
+casper
 /host http://192.168.1.100:11434
 ```
 
 ## macOS GUI
 
-OlEg also includes a **native macOS GUI application** built with SwiftUI. It provides the same powerful features as the CLI in a modern graphical interface.
+Casper also includes a **native macOS GUI application** built with SwiftUI. It provides the same powerful features as the CLI in a modern graphical interface.
 
 ### Features
 
@@ -389,7 +389,7 @@ Found 5 open issues:
 | `/mcp tools` | List available MCP tools |
 | `/config` | Show current configuration |
 | `/clear` | Clear the screen |
-| `/exit` | Exit OlEg |
+| `/exit` | Exit Casper |
 
 ### Agent Commands
 
@@ -442,7 +442,7 @@ Found 5 open issues:
 
 ### Main Configuration
 
-Settings are stored in `~/.config/oleg/config.db` (SQLite) and include:
+Settings are stored in `~/.config/casper/config.db` (SQLite) and include:
 
 - Model selection
 - Temperature
@@ -478,7 +478,7 @@ db_allow_write: false (safety default)
 
 # Vector Database
 vector_backend: sqlite | chroma | faiss
-vector_path: ~/.config/oleg/vectors/
+vector_path: ~/.config/casper/vectors/
 
 # Embeddings
 embedding_provider: ollama | local
@@ -493,7 +493,7 @@ rag_max_chunks: 5
 
 ### MCP Server Configuration
 
-Configure MCP servers in `~/.config/oleg/mcp_servers.json`:
+Configure MCP servers in `~/.config/casper/mcp_servers.json`:
 
 ```json
 {
@@ -536,30 +536,30 @@ See [docs/MCP_SETUP.md](docs/MCP_SETUP.md) for detailed MCP configuration.
 ### Homebrew (macOS) - Recommended
 
 ```bash
-brew tap juergengp/oleg https://github.com/juergengp/OlEg
-brew install oleg
+brew tap juergengp/casper https://github.com/juergengp/Casper
+brew install casper
 ```
 
 ### Pre-built Binary (macOS)
 
 ```bash
 # Option A: Download universal binary directly
-curl -L https://github.com/juergengp/OlEg/releases/latest/download/oleg-macos-universal -o oleg
-chmod +x oleg
-sudo mv oleg /usr/local/bin/
+curl -L https://github.com/juergengp/Casper/releases/latest/download/casper-macos-universal -o casper
+chmod +x casper
+sudo mv casper /usr/local/bin/
 
 # Option B: Clone and copy from repository
-git clone https://github.com/juergengp/OlEg.git
-cd OlEg
-sudo cp bin/oleg-universal /usr/local/bin/oleg
+git clone https://github.com/juergengp/Casper.git
+cd Casper
+sudo cp bin/casper-universal /usr/local/bin/casper
 ```
 
 **Available binaries:**
 | Binary | Architecture |
 |--------|--------------|
-| `oleg-macos-universal` | All Macs (recommended) |
-| `oleg-macos-arm64` | Apple Silicon (M1/M2/M3/M4) |
-| `oleg-macos-x86_64` | Intel Macs |
+| `casper-macos-universal` | All Macs (recommended) |
+| `casper-macos-arm64` | Apple Silicon (M1/M2/M3/M4) |
+| `casper-macos-x86_64` | Intel Macs |
 
 ### Build from Source
 
@@ -575,11 +575,11 @@ sudo cp bin/oleg-universal /usr/local/bin/oleg
 brew install cmake curl sqlite3
 
 # Build
-cd OlEg/cpp
+cd Casper/cpp
 mkdir build && cd build
 cmake ..
 make
-sudo cp oleg /usr/local/bin/
+sudo cp casper /usr/local/bin/
 ```
 
 **Linux (Debian/Ubuntu):**
@@ -588,11 +588,11 @@ sudo cp oleg /usr/local/bin/
 sudo apt install cmake build-essential libcurl4-openssl-dev libsqlite3-dev
 
 # Build
-cd OlEg/cpp
+cd Casper/cpp
 mkdir build && cd build
 cmake ..
 make
-sudo cp oleg /usr/local/bin/
+sudo cp casper /usr/local/bin/
 ```
 
 **Linux (Fedora/RHEL):**
@@ -601,11 +601,11 @@ sudo cp oleg /usr/local/bin/
 sudo dnf install cmake gcc-c++ libcurl-devel sqlite-devel
 
 # Build
-cd OlEg/cpp
+cd Casper/cpp
 mkdir build && cd build
 cmake ..
 make
-sudo cp oleg /usr/local/bin/
+sudo cp casper /usr/local/bin/
 ```
 
 ## Documentation
@@ -619,9 +619,9 @@ sudo cp oleg /usr/local/bin/
 ## Architecture
 
 ```
-OlEg/
+Casper/
 ├── bin/                    # Pre-built binaries
-│   └── oleg         # macOS binary
+│   └── casper         # macOS binary
 ├── cpp/                    # C++ CLI source code
 │   ├── include/           # Header files
 │   │   ├── agent.h        # Agent system
@@ -660,9 +660,9 @@ OlEg/
     └── mcp_servers.json
 ```
 
-## Why OlEg?
+## Why Casper?
 
-| Feature | OlEg | Claude Code | GitHub Copilot |
+| Feature | Casper | Claude Code | GitHub Copilot |
 |---------|------------|-------------|----------------|
 | **Privacy** | 100% Local | Cloud | Cloud |
 | **Cost** | Free | Subscription | Subscription |
@@ -699,6 +699,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 </p>
 
 <p align="center">
-  <a href="https://github.com/juergengp/OlEg/issues">Report Bug</a> •
-  <a href="https://github.com/juergengp/OlEg/issues">Request Feature</a>
+  <a href="https://github.com/juergengp/Casper/issues">Report Bug</a> •
+  <a href="https://github.com/juergengp/Casper/issues">Request Feature</a>
 </p>

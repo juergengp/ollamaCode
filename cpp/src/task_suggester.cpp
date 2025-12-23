@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <regex>
 
-namespace oleg {
+namespace casper {
 
 TaskSuggester::TaskSuggester() : statusCallback_(nullptr) {}
 
@@ -563,4 +563,4 @@ ToolSelectionResult TaskSuggester::showToolSelectionMenu(
     }
 }
 
-} // namespace oleg
+} // namespace casper

@@ -1,5 +1,5 @@
-#ifndef OLEG_CONFIG_H
-#define OLEG_CONFIG_H
+#ifndef CASPER_CONFIG_H
+#define CASPER_CONFIG_H
 
 #include <string>
 #include <vector>
@@ -7,7 +7,7 @@
 #include <memory>
 #include <sqlite3.h>
 
-namespace oleg {
+namespace casper {
 
 // MCP Server configuration structure
 struct MCPServerConfig {
@@ -166,6 +166,6 @@ private:
     std::vector<MCPServerConfig> mcp_servers_;
 };
 
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_CONFIG_H
+#endif // CASPER_CONFIG_H

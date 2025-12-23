@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace oleg {
+namespace casper {
 
 std::string ToolParser::extractTag(const std::string& text, const std::string& tag) {
     std::string openTag = "<" + tag + ">";
@@ -239,4 +239,4 @@ std::string ToolParser::extractResponseText(const std::string& response) {
     return utils::trim(cleaned);
 }
 
-} // namespace oleg
+} // namespace casper

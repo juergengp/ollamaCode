@@ -13,7 +13,7 @@
 #include <cstring>
 #include <array>
 
-namespace oleg {
+namespace casper {
 
 // Helper function to count lines in a string
 static int countLines(const std::string& str) {
@@ -1366,4 +1366,4 @@ std::vector<ToolResult> ToolExecutor::executeAll(const std::vector<ToolCall>& to
     return results;
 }
 
-} // namespace oleg
+} // namespace casper

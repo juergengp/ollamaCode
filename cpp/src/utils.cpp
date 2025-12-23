@@ -10,7 +10,7 @@
 #include <pwd.h>
 #include <chrono>
 
-namespace oleg {
+namespace casper {
 namespace utils {
 
 // String utilities
@@ -198,4 +198,4 @@ void printInfo(const std::string& text) {
 } // namespace terminal
 
 } // namespace utils
-} // namespace oleg
+} // namespace casper

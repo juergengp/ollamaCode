@@ -16,7 +16,7 @@ using json = nlohmann::json;
 // Helper macro to cast db_
 #define DB() (reinterpret_cast<sqlite3*>(db_))
 
-namespace oleg {
+namespace casper {
 
 PromptDatabase::PromptDatabase()
     : db_(nullptr)
@@ -41,7 +41,7 @@ bool PromptDatabase::initialize(const std::string& db_path) {
             std::cerr << "Cannot determine home directory" << std::endl;
             return false;
         }
-        db_path_ = std::string(home) + "/.config/oleg/config.db";
+        db_path_ = std::string(home) + "/.config/casper/config.db";
     } else {
         db_path_ = db_path;
     }
@@ -949,4 +949,4 @@ std::vector<std::pair<std::string, int>> PromptDatabase::getPromptsPerCategory()
     return result;
 }
 
-} // namespace oleg
+} // namespace casper

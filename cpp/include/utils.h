@@ -1,10 +1,10 @@
-#ifndef OLEG_UTILS_H
-#define OLEG_UTILS_H
+#ifndef CASPER_UTILS_H
+#define CASPER_UTILS_H
 
 #include <string>
 #include <vector>
 
-namespace oleg {
+namespace casper {
 namespace utils {
 
 // String utilities
@@ -60,6 +60,6 @@ namespace terminal {
 }
 
 } // namespace utils
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_UTILS_H
+#endif // CASPER_UTILS_H

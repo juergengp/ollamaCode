@@ -1,6 +1,6 @@
-# OlEg Features
+# Casper Features
 
-Complete guide to all features available in OlEg v2.0.2
+Complete guide to all features available in Casper v2.0.2
 
 ## Table of Contents
 
@@ -15,22 +15,22 @@ Complete guide to all features available in OlEg v2.0.2
 
 ## Interactive Mode
 
-OlEg provides a rich interactive terminal experience for conversing with your local AI models.
+Casper provides a rich interactive terminal experience for conversing with your local AI models.
 
 ### Starting Interactive Mode
 
 ```bash
 # Basic start
-oleg
+casper
 
 # With specific model
-oleg -m llama3.1
+casper -m llama3.1
 
 # With MCP enabled
-oleg --mcp
+casper --mcp
 
 # With auto-approve for tools
-oleg -a
+casper -a
 ```
 
 ### Terminal Interface
@@ -195,13 +195,13 @@ Mode: content
 
 ## MCP Support
 
-Model Context Protocol (MCP) allows OlEg to connect to external services and tools.
+Model Context Protocol (MCP) allows Casper to connect to external services and tools.
 
 ### Enabling MCP
 
 ```bash
 # Enable on startup
-oleg --mcp
+casper --mcp
 
 # Enable interactively
 You> /mcp on
@@ -244,7 +244,7 @@ You> Read the README from my GitHub repo
 [MCP Tool: github/get_file_contents]
 Arguments: {
   "owner": "juergengp",
-  "repo": "OlEg",
+  "repo": "Casper",
   "path": "README.md"
 }
 
@@ -253,14 +253,14 @@ Execute MCP tool? (y/n): y
 ✓ MCP tool executed successfully
 
 === MCP Output ===
-# OlEg
+# Casper
 Interactive CLI for Ollama...
 ==================
 ```
 
 ### Configuring MCP Servers
 
-Create `~/.config/oleg/mcp_servers.json`:
+Create `~/.config/casper/mcp_servers.json`:
 
 ```json
 {
@@ -330,17 +330,17 @@ You> /use codellama
 
 ```bash
 # Use specific model
-oleg -m qwen2.5:14b "Write a Python function"
+casper -m qwen2.5:14b "Write a Python function"
 
 # Use specific model in interactive mode
-oleg -m llama3.1:70b
+casper -m llama3.1:70b
 ```
 
 ---
 
 ## Safety Features
 
-OlEg includes multiple safety mechanisms to protect your system.
+Casper includes multiple safety mechanisms to protect your system.
 
 ### Safe Mode
 
@@ -398,7 +398,7 @@ You> /auto on
 ⚠ Auto-approve enabled
 
 # Or via command line
-oleg -a
+casper -a
 ```
 
 ---
@@ -407,7 +407,7 @@ oleg -a
 
 ### Configuration Storage
 
-Settings are stored in SQLite at `~/.config/oleg/config.db`
+Settings are stored in SQLite at `~/.config/casper/config.db`
 
 ### Viewing Current Configuration
 
@@ -435,13 +435,13 @@ You> /temp 0.3
 ✓ Temperature set to: 0.3
 
 # Or via command line
-oleg -t 0.5 "Generate test cases"
+casper -t 0.5 "Generate test cases"
 ```
 
 ### Command Line Options
 
 ```
-Usage: oleg [OPTIONS] [PROMPT]
+Usage: casper [OPTIONS] [PROMPT]
 
 OPTIONS:
     -m, --model MODEL       Use specific model

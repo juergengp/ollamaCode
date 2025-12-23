@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(oleg VERSION 2.3.1 LANGUAGES CXX)
+project(casper VERSION 2.3.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -128,10 +128,10 @@ set(HEADERS
 )
 
 # Main executable
-add_executable(oleg ${SOURCES} ${HEADERS})
+add_executable(casper ${SOURCES} ${HEADERS})
 
 # Link libraries
-target_link_libraries(oleg
+target_link_libraries(casper
     ${CURL_LIBRARIES}
     ${SQLite3_LIBRARIES}
     Threads::Threads
@@ -139,7 +139,7 @@ target_link_libraries(oleg
 
 # macOS frameworks for hardware ID
 if(APPLE)
-    target_link_libraries(oleg
+    target_link_libraries(casper
         "-framework IOKit"
         "-framework CoreFoundation"
     )
@@ -147,41 +147,41 @@ endif()
 
 # Link readline if available
 if(READLINE_FOUND)
-    target_include_directories(oleg PRIVATE ${READLINE_INCLUDE_DIRS})
+    target_include_directories(casper PRIVATE ${READLINE_INCLUDE_DIRS})
     # On macOS, use the full path to Homebrew's readline to avoid linking against system libedit
     if(APPLE AND EXISTS "/opt/homebrew/opt/readline/lib/libreadline.dylib")
-        target_link_libraries(oleg "/opt/homebrew/opt/readline/lib/libreadline.dylib")
+        target_link_libraries(casper "/opt/homebrew/opt/readline/lib/libreadline.dylib")
     else()
-        target_link_libraries(oleg ${READLINE_LIBRARIES})
+        target_link_libraries(casper ${READLINE_LIBRARIES})
     endif()
-    target_compile_definitions(oleg PRIVATE HAVE_READLINE)
+    target_compile_definitions(casper PRIVATE HAVE_READLINE)
 endif()
 
 # Link PostgreSQL if available
 if(PostgreSQL_FOUND)
-    target_include_directories(oleg PRIVATE ${PostgreSQL_INCLUDE_DIRS})
-    target_link_libraries(oleg ${PostgreSQL_LIBRARIES})
-    target_compile_definitions(oleg PRIVATE HAVE_POSTGRESQL)
+    target_include_directories(casper PRIVATE ${PostgreSQL_INCLUDE_DIRS})
+    target_link_libraries(casper ${PostgreSQL_LIBRARIES})
+    target_compile_definitions(casper PRIVATE HAVE_POSTGRESQL)
 endif()
 
 # Link MySQL if available
 if(MYSQL_FOUND)
-    target_include_directories(oleg PRIVATE ${MYSQL_INCLUDE_DIRS})
-    target_link_libraries(oleg ${MYSQL_LIBRARIES})
-    target_compile_definitions(oleg PRIVATE HAVE_MYSQL)
+    target_include_directories(casper PRIVATE ${MYSQL_INCLUDE_DIRS})
+    target_link_libraries(casper ${MYSQL_LIBRARIES})
+    target_compile_definitions(casper PRIVATE HAVE_MYSQL)
 endif()
 
 # Link FAISS if available
 if(faiss_FOUND)
-    target_link_libraries(oleg faiss)
-    target_compile_definitions(oleg PRIVATE HAVE_FAISS)
+    target_link_libraries(casper faiss)
+    target_compile_definitions(casper PRIVATE HAVE_FAISS)
 endif()
 
 # Installation
-install(TARGETS oleg DESTINATION bin)
+install(TARGETS casper DESTINATION bin)
 
 # Create config directory
-install(DIRECTORY DESTINATION $ENV{HOME}/.config/oleg)
+install(DIRECTORY DESTINATION $ENV{HOME}/.config/casper)
 
 # Tests (optional)
 option(BUILD_TESTS "Build tests" OFF)

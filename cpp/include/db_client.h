@@ -1,5 +1,5 @@
-#ifndef OLEG_DB_CLIENT_H
-#define OLEG_DB_CLIENT_H
+#ifndef CASPER_DB_CLIENT_H
+#define CASPER_DB_CLIENT_H
 
 #include <string>
 #include <vector>
@@ -7,7 +7,7 @@
 #include <memory>
 #include <functional>
 
-namespace oleg {
+namespace casper {
 
 // Query result row
 using DBRow = std::map<std::string, std::string>;
@@ -180,6 +180,6 @@ private:
     bool connected_;
 };
 
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_DB_CLIENT_H
+#endif // CASPER_DB_CLIENT_H

@@ -1,6 +1,6 @@
-# OlEg Examples
+# Casper Examples
 
-This document provides practical examples of using OlEg with tool calling.
+This document provides practical examples of using Casper with tool calling.
 
 ## Basic Examples
 
@@ -8,7 +8,7 @@ This document provides practical examples of using OlEg with tool calling.
 
 **Request:**
 ```bash
-oleg "Find all shell scripts in this directory and show me which ones are executable"
+casper "Find all shell scripts in this directory and show me which ones are executable"
 ```
 
 **AI Workflow:**
@@ -42,7 +42,7 @@ oleg "Find all shell scripts in this directory and show me which ones are execut
 
 **Request:**
 ```bash
-oleg "In config.json, change the port from 8080 to 9090"
+casper "In config.json, change the port from 8080 to 9090"
 ```
 
 **AI Workflow:**
@@ -76,7 +76,7 @@ oleg "In config.json, change the port from 8080 to 9090"
 
 **Request:**
 ```bash
-oleg "Check disk usage and memory usage on this system"
+casper "Check disk usage and memory usage on this system"
 ```
 
 **AI Workflow:**
@@ -112,7 +112,7 @@ oleg "Check disk usage and memory usage on this system"
 
 **Request:**
 ```bash
-oleg "Create a basic Python project structure with src/ directory, main.py, requirements.txt, and README.md"
+casper "Create a basic Python project structure with src/ directory, main.py, requirements.txt, and README.md"
 ```
 
 **AI Workflow:**
@@ -193,7 +193,7 @@ python src/main.py
 
 **Request:**
 ```bash
-oleg "Find all functions in Python files that have more than 50 lines and create a report"
+casper "Find all functions in Python files that have more than 50 lines and create a report"
 ```
 
 **AI Workflow:**
@@ -210,7 +210,7 @@ This demonstrates the AI's ability to plan and execute complex multi-step workfl
 
 **Request:**
 ```bash
-oleg "Find error messages in app.log from the last hour and summarize them"
+casper "Find error messages in app.log from the last hour and summarize them"
 ```
 
 **AI Workflow:**
@@ -300,7 +300,7 @@ Done! I've created a config.py file and updated main.py to import the PORT from 
 
 ### 3. Use Auto-Approve for Trusted Tasks
 ```bash
-oleg -a "Run the test suite and show me any failures"
+casper -a "Run the test suite and show me any failures"
 ```
 
 ### 4. Leverage Safe Mode
@@ -324,7 +324,7 @@ You> Create a list of entry points in entry_points.md
 # ci-check.sh
 
 # Auto-approve mode for CI
-oleg -a "Run pytest and if any tests fail, read the error logs and create a summary report in test-failures.md"
+casper -a "Run pytest and if any tests fail, read the error logs and create a summary report in test-failures.md"
 
 # Check if report was created
 if [ -f "test-failures.md" ]; then
@@ -341,7 +341,7 @@ exit 0
 #!/bin/bash
 # daily-report.sh
 
-oleg -a "Check git log for today's commits, analyze changed files, and create a daily-summary.md report"
+casper -a "Check git log for today's commits, analyze changed files, and create a daily-summary.md report"
 ```
 
 ### Code Maintenance
@@ -350,7 +350,7 @@ oleg -a "Check git log for today's commits, analyze changed files, and create a 
 #!/bin/bash
 # find-todos.sh
 
-oleg "Find all TODO, FIXME, and HACK comments in the codebase and create a prioritized todo-list.md"
+casper "Find all TODO, FIXME, and HACK comments in the codebase and create a prioritized todo-list.md"
 ```
 
 ---
@@ -364,14 +364,14 @@ oleg "Find all TODO, FIXME, and HACK comments in the codebase and create a prior
 export OLLAMA_HOST=http://ai-server.company.com:11434
 
 # Use as normal
-oleg "Your request here"
+casper "Your request here"
 ```
 
 ### Team Shared Configuration
 
 ```bash
 # Create shared config
-cat > ~/.config/oleg/config << EOF
+cat > ~/.config/casper/config << EOF
 MODEL=llama3-70b
 OLLAMA_HOST=http://shared-ai.local:11434
 TEMPERATURE=0.5
@@ -379,7 +379,7 @@ SAFE_MODE=true
 EOF
 
 # Everyone on the team uses the same powerful model
-oleg
+casper
 ```
 
 ---
@@ -401,15 +401,15 @@ Have a great example? Submit a PR with your use case!
 
 1. Fork the repository
 2. Add your example to this file
-3. Test it with OlEg
+3. Test it with Casper
 4. Submit a pull request
 
 ---
 
 ## Need Help?
 
-- GitHub Issues: https://github.com/core-at/oleg/issues
+- GitHub Issues: https://github.com/core-at/casper/issues
 - Email: support@core.at
 - Documentation: README-v2.md
 
-Happy coding with OlEg! 🚀
+Happy coding with Casper! 🚀

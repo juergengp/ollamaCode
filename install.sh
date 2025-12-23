@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# OlEg - Universal Installation Script
+# Casper - Universal Installation Script
 # Version: 2.1.0
 # Supports: macOS, Linux (Fedora, RHEL, CentOS, Debian, Ubuntu)
 #
@@ -18,7 +18,7 @@ BOLD='\033[1m'
 
 # Installation paths
 INSTALL_DIR="/usr/local/bin"
-CONFIG_DIR="${HOME}/.config/oleg"
+CONFIG_DIR="${HOME}/.config/casper"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo -e "${BLUE}${BOLD}"
@@ -42,14 +42,14 @@ detect_platform() {
         Darwin)
             PLATFORM="macos"
             if [[ "$ARCH" == "arm64" ]]; then
-                BINARY_NAME="oleg-arm64"
+                BINARY_NAME="casper-arm64"
             else
-                BINARY_NAME="oleg-x86_64"
+                BINARY_NAME="casper-x86_64"
             fi
             ;;
         Linux)
             PLATFORM="linux"
-            BINARY_NAME="oleg-linux-${ARCH}"
+            BINARY_NAME="casper-linux-${ARCH}"
             ;;
         *)
             echo -e "${RED}Error: Unsupported OS: ${OS}${NC}"
@@ -96,15 +96,15 @@ find_binary() {
     if [[ -f "${SCRIPT_DIR}/bin/${BINARY_NAME}" ]]; then
         BINARY_PATH="${SCRIPT_DIR}/bin/${BINARY_NAME}"
     # Try generic binary
-    elif [[ -f "${SCRIPT_DIR}/bin/oleg" ]]; then
-        BINARY_PATH="${SCRIPT_DIR}/bin/oleg"
+    elif [[ -f "${SCRIPT_DIR}/bin/casper" ]]; then
+        BINARY_PATH="${SCRIPT_DIR}/bin/casper"
     # Try build directory
-    elif [[ -f "${SCRIPT_DIR}/cpp/build/oleg" ]]; then
-        BINARY_PATH="${SCRIPT_DIR}/cpp/build/oleg"
+    elif [[ -f "${SCRIPT_DIR}/cpp/build/casper" ]]; then
+        BINARY_PATH="${SCRIPT_DIR}/cpp/build/casper"
     fi
 
     if [[ -z "$BINARY_PATH" ]]; then
-        echo -e "${RED}Error: oleg binary not found${NC}"
+        echo -e "${RED}Error: casper binary not found${NC}"
         echo -e "${YELLOW}Build it first with:${NC}"
         echo -e "  cd cpp && mkdir -p build && cd build && cmake .. && make"
         exit 1
@@ -115,18 +115,18 @@ find_binary() {
 
 # Install binary
 install_binary() {
-    echo -e "${YELLOW}Installing oleg...${NC}"
+    echo -e "${YELLOW}Installing casper...${NC}"
 
     if [[ -w "${INSTALL_DIR}" ]]; then
-        cp "$BINARY_PATH" "${INSTALL_DIR}/oleg"
-        chmod +x "${INSTALL_DIR}/oleg"
+        cp "$BINARY_PATH" "${INSTALL_DIR}/casper"
+        chmod +x "${INSTALL_DIR}/casper"
     else
         echo -e "${YELLOW}(requires sudo)${NC}"
-        sudo cp "$BINARY_PATH" "${INSTALL_DIR}/oleg"
-        sudo chmod +x "${INSTALL_DIR}/oleg"
+        sudo cp "$BINARY_PATH" "${INSTALL_DIR}/casper"
+        sudo chmod +x "${INSTALL_DIR}/casper"
     fi
 
-    echo -e "${GREEN}Installed to ${INSTALL_DIR}/oleg${NC}"
+    echo -e "${GREEN}Installed to ${INSTALL_DIR}/casper${NC}"
 }
 
 # Create config directory
@@ -139,12 +139,12 @@ create_config() {
 test_installation() {
     echo -e "${YELLOW}Testing installation...${NC}"
 
-    if command_exists oleg; then
-        VERSION=$(oleg --version 2>&1 || echo "unknown")
-        echo -e "${GREEN}oleg is working!${NC}"
+    if command_exists casper; then
+        VERSION=$(casper --version 2>&1 || echo "unknown")
+        echo -e "${GREEN}casper is working!${NC}"
         echo -e "  ${CYAN}${VERSION}${NC}"
     else
-        echo -e "${RED}Installation failed - oleg not found in PATH${NC}"
+        echo -e "${RED}Installation failed - casper not found in PATH${NC}"
         exit 1
     fi
 }
@@ -174,9 +174,9 @@ main() {
     echo -e "${GREEN}${BOLD}Installation Complete!${NC}"
     echo ""
     echo -e "${CYAN}${BOLD}Quick Start:${NC}"
-    echo -e "  ${BOLD}oleg${NC}                  # Start interactive mode"
-    echo -e "  ${BOLD}oleg --help${NC}           # Show help"
-    echo -e "  ${BOLD}oleg --mcp${NC}            # Start with MCP servers"
+    echo -e "  ${BOLD}casper${NC}                  # Start interactive mode"
+    echo -e "  ${BOLD}casper --help${NC}           # Show help"
+    echo -e "  ${BOLD}casper --mcp${NC}            # Start with MCP servers"
     echo ""
     echo -e "${CYAN}${BOLD}Key Commands:${NC}"
     echo -e "  ${BOLD}/model${NC}                      # Interactive model selector"
@@ -186,7 +186,7 @@ main() {
     echo ""
     echo -e "${CYAN}${BOLD}Next Steps:${NC}"
     echo -e "  1. Pull a model: ${BOLD}ollama pull llama3.1${NC}"
-    echo -e "  2. Start oleg: ${BOLD}oleg${NC}"
+    echo -e "  2. Start casper: ${BOLD}casper${NC}"
     echo ""
 }
 

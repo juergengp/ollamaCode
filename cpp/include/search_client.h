@@ -1,12 +1,12 @@
-#ifndef OLEG_SEARCH_CLIENT_H
-#define OLEG_SEARCH_CLIENT_H
+#ifndef CASPER_SEARCH_CLIENT_H
+#define CASPER_SEARCH_CLIENT_H
 
 #include <string>
 #include <vector>
 #include <memory>
 #include <functional>
 
-namespace oleg {
+namespace casper {
 
 // Search result structure
 struct SearchResult {
@@ -136,6 +136,6 @@ private:
     SearchProvider* getProvider(const std::string& name);
 };
 
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_SEARCH_CLIENT_H
+#endif // CASPER_SEARCH_CLIENT_H

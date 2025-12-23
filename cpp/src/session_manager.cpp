@@ -7,7 +7,7 @@
 #include <random>
 #include <algorithm>
 
-namespace oleg {
+namespace casper {
 
 // Message implementation
 json Message::toJson() const {
@@ -938,11 +938,11 @@ bool SessionManager::generateSessionReport(const std::string& output_path) const
 }
 
 std::string SessionManager::getSessionsDir() {
-    return utils::joinPath(utils::joinPath(utils::getHomeDir(), ".config/oleg"), "sessions");
+    return utils::joinPath(utils::joinPath(utils::getHomeDir(), ".config/casper"), "sessions");
 }
 
 std::string SessionManager::getSessionDbPath() {
     return utils::joinPath(getSessionsDir(), "sessions.db");
 }
 
-} // namespace oleg
+} // namespace casper

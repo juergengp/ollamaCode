@@ -1,5 +1,5 @@
-#ifndef OLEG_VECTOR_DB_H
-#define OLEG_VECTOR_DB_H
+#ifndef CASPER_VECTOR_DB_H
+#define CASPER_VECTOR_DB_H
 
 #include "embeddings.h"
 #include <string>
@@ -7,7 +7,7 @@
 #include <memory>
 #include <functional>
 
-namespace oleg {
+namespace casper {
 
 // Document stored in vector database
 struct VectorDocument {
@@ -230,6 +230,6 @@ private:
     std::string path_;
 };
 
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_VECTOR_DB_H
+#endif // CASPER_VECTOR_DB_H

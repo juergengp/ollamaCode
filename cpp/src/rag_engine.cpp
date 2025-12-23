@@ -9,7 +9,7 @@
 #include <iostream>
 #include <fnmatch.h>
 
-namespace oleg {
+namespace casper {
 
 RAGEngine::RAGEngine() : initialized_(false) {
 }
@@ -427,4 +427,4 @@ VectorDBStats RAGEngine::getStats() {
     return vector_db_->getStats();
 }
 
-} // namespace oleg
+} // namespace casper

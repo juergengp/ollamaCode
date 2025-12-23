@@ -1,12 +1,12 @@
-#ifndef OLEG_COMMAND_MENU_H
-#define OLEG_COMMAND_MENU_H
+#ifndef CASPER_COMMAND_MENU_H
+#define CASPER_COMMAND_MENU_H
 
 #include <string>
 #include <vector>
 #include <functional>
 #include <termios.h>
 
-namespace oleg {
+namespace casper {
 
 // Command definition with name and description
 struct CommandDef {
@@ -62,6 +62,6 @@ private:
     int menu_lines_rendered_;
 };
 
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_COMMAND_MENU_H
+#endif // CASPER_COMMAND_MENU_H

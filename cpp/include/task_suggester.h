@@ -1,5 +1,5 @@
-#ifndef OLEG_TASK_SUGGESTER_H
-#define OLEG_TASK_SUGGESTER_H
+#ifndef CASPER_TASK_SUGGESTER_H
+#define CASPER_TASK_SUGGESTER_H
 
 #include "agent.h"
 #include "tool_parser.h"
@@ -7,7 +7,7 @@
 #include <vector>
 #include <functional>
 
-namespace oleg {
+namespace casper {
 
 // Callback for status updates
 using StatusCallback = std::function<void(const std::string&)>;
@@ -55,6 +55,6 @@ private:
     );
 };
 
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_TASK_SUGGESTER_H
+#endif // CASPER_TASK_SUGGESTER_H

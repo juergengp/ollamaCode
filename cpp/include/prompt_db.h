@@ -1,11 +1,11 @@
-#ifndef OLEG_PROMPT_DB_H
-#define OLEG_PROMPT_DB_H
+#ifndef CASPER_PROMPT_DB_H
+#define CASPER_PROMPT_DB_H
 
 #include <string>
 #include <vector>
 #include <cstdint>
 
-namespace oleg {
+namespace casper {
 
 // Forward declaration
 class LicenseManager;
@@ -161,6 +161,6 @@ private:
     bool checkPromptLimit();
 };
 
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_PROMPT_DB_H
+#endif // CASPER_PROMPT_DB_H

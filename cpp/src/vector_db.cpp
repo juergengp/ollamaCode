@@ -13,7 +13,7 @@
 
 using json = nlohmann::json;
 
-namespace oleg {
+namespace casper {
 
 // CURL write callback
 static size_t writeCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
@@ -893,4 +893,4 @@ std::vector<std::string> VectorDB::getAvailableBackends() {
     return backends;
 }
 
-} // namespace oleg
+} // namespace casper

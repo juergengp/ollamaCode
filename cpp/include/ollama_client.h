@@ -1,5 +1,5 @@
-#ifndef OLEG_OLLAMA_CLIENT_H
-#define OLEG_OLLAMA_CLIENT_H
+#ifndef CASPER_OLLAMA_CLIENT_H
+#define CASPER_OLLAMA_CLIENT_H
 
 #include <string>
 #include <vector>
@@ -9,7 +9,7 @@
 
 using json = nlohmann::json;
 
-namespace oleg {
+namespace casper {
 
 struct OllamaResponse {
     std::string response;
@@ -127,6 +127,6 @@ private:
     static size_t streamCallback(void* contents, size_t size, size_t nmemb, void* userp);
 };
 
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_OLLAMA_CLIENT_H
+#endif // CASPER_OLLAMA_CLIENT_H

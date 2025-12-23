@@ -1,12 +1,12 @@
-#ifndef OLEG_TOOL_EXECUTOR_H
-#define OLEG_TOOL_EXECUTOR_H
+#ifndef CASPER_TOOL_EXECUTOR_H
+#define CASPER_TOOL_EXECUTOR_H
 
 #include <string>
 #include <functional>
 #include <memory>
 #include "tool_parser.h"
 
-namespace oleg {
+namespace casper {
 
 class Config; // Forward declaration
 class MCPClient; // Forward declaration
@@ -82,6 +82,6 @@ private:
     std::string executeCommand(const std::string& command, int& exit_code);
 };
 
-} // namespace oleg
+} // namespace casper
 
-#endif // OLEG_TOOL_EXECUTOR_H
+#endif // CASPER_TOOL_EXECUTOR_H
