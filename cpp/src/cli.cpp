@@ -109,14 +109,14 @@ void CLI::printBanner() {
                |___/
 )" << utils::terminal::RESET;
 
-    std::cout << utils::terminal::BLUE << "Interactive CLI for Ollama - Version 2.3.1 (C++)" << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::BLUE << "Local AI. Real power. - Version 2.3.1" << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::YELLOW << "Type '/help' for commands, '/exit' to quit" << utils::terminal::RESET << "\n\n";
 }
 
 void CLI::printHelp() {
     std::cout << R"(Usage: oleg [OPTIONS] [PROMPT]
 
-Interactive CLI for Ollama with Claude Code-like tool calling
+Agentic AI assistant powered by local LLMs
 
 OPTIONS:
     -m, --model MODEL       Use specific model

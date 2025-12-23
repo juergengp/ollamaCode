@@ -5,7 +5,7 @@
 <h1 align="center">OlEg</h1>
 
 <p align="center">
-  <strong>Run AI coding assistants locally with Ollama - Claude Code experience, zero cloud dependency</strong>
+  <strong>Agentic AI assistant powered by local LLMs - chat, agents, tools, all local</strong>
 </p>
 
 <p align="center">
