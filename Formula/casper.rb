@@ -7,7 +7,7 @@ class Casper < Formula
   on_macos do
     if Hardware::CPU.arm?
       url "https://github.com/juergengp/ollamaCode/raw/main/bin/casper-arm64"
-      sha256 "7f90745e8ddb7bf8466f5da5d5745541f155d10eca6cdb3b5bb07ae21f544509"
+      sha256 "32253b5817eae538815bde58a0b0593921ca43684cfc91619d25b4cf7b462c56"
     else
       url "https://github.com/juergengp/ollamaCode/raw/main/bin/casper-x86_64"
       sha256 "877afacaf5880c47b9283bbf8c8f4ac3cb81b5594f76f02dad2e04d15da6526d"
