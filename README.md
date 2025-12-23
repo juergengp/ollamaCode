@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-2.3.0-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-2.3.1-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey.svg" alt="Platform">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
   <img src="https://img.shields.io/badge/Ollama-compatible-orange.svg" alt="Ollama">
@@ -27,7 +27,13 @@
 
 ---
 
-## What's New in v2.3.0
+## What's New in v2.3.1
+
+- **🎉 Renamed to Casper** - Your friendly local AI assistant
+- **New tagline** - "Local AI. Real power."
+- **Updated branding** - New ASCII banner and CLI identity
+
+### v2.3.0
 
 - **🔧 Custom Model Builder** - Create custom LLMs with Modelfile support (`/model create`)
 - **📦 Model Management** - Pull, push, copy, delete models with progress tracking
