@@ -108,7 +108,7 @@ void CLI::printBanner() {
   \____/_/   \_\____/|_|   |_____|_| \_\
 )" << utils::terminal::RESET;
 
-    std::cout << utils::terminal::BLUE << "Local AI. Real power. - Version 2.3.1" << utils::terminal::RESET << "\n";
+    std::cout << utils::terminal::BLUE << "Local AI. Real power. - Version 2.4.0" << utils::terminal::RESET << "\n";
     std::cout << utils::terminal::YELLOW << "Type '/help' for commands, '/exit' to quit" << utils::terminal::RESET << "\n\n";
 }
 
